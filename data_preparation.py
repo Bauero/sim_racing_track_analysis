@@ -115,7 +115,7 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
     'Time' value)
     """
 
-    if hard_coded:
+    if not hard_coded:
         if verbose: counter = 0
 
         for row in range(len(file_object) - 1,-1,-1):
@@ -151,7 +151,11 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
 
         if verbose:
             print(f"Removing 2,3, and 4 row - first one is title : {file_object[0][:20]}")
-        file_object = file_object[0] + file_object[3:]
+        file_object.pop(1)
+        file_object.pop(1)
+        file_object.pop(1)
+    
+    return file_object
 
 #   READY
 def __remove_unnecessary_colums(file_object, custom_to_remove : list, 
@@ -196,7 +200,6 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
                 'BUMPSTOP_FORCE_RR']
     else:
         to_remove = custom_to_remove
-
 
     columns_to_remove = [file_object[0].index(i) for i in to_remove]
 
@@ -251,18 +254,17 @@ def __even_out_comma_notation_str(file_object):
                                     for a in file_object[row]]
 
 #   READY
-def __fill_missing_lap_data(file_object, lap_info : list[list], 
-                            first_lap_no : int = 1, verbose : bool = False):
+def __fill_missing_lap_data(file_object, lap_info : list[list], verbose : bool = False):
     import math
     column = file_object[0].index('LAP_BEACON')
 
-    lap = str(first_lap_no)
+    lap = "1"
     last_time = lap_info[lap]['end']
     if verbose:
         print(f"Filling out rows in lap {lap}")
 
     for row in range(1,len(file_object)):
-        if file_object[row][0] <= last_time:
+        if float(file_object[row][0]) <= last_time:
             file_object[row][column] = lap
         else:
             lap = str(int(lap) + 1)
@@ -280,9 +282,8 @@ def __fill_missing_lap_data(file_object, lap_info : list[list],
 #   READY
 def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
-                 advanced_row_removal : bool = False,
+                 hard_codec_row_removal : bool = True,
                  custom_column_remove_list : list = None,
-                 custom_lap_numering : bool = False
                  ) -> dict:
     """
     This is general function which is responsible for data preparation
@@ -291,13 +292,12 @@ def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
     """
     race_info = __extract_general_data(file_object, make_file, verbose)
     if verbose: print()
-    __remove_unnecessary_rows(file_object, advanced_row_removal, verbose)
+    file_object = __remove_unnecessary_rows(file_object, hard_codec_row_removal, verbose)
     if verbose: print()
     __remove_unnecessary_colums(file_object, custom_column_remove_list, verbose)
     if verbose: print()
 
-    __fill_missing_lap_data(file_object, race_info['lap_info'], custom_lap_numering,
-                            verbose)
+    __fill_missing_lap_data(file_object, race_info['laps_start_end'], verbose)
 
     if convert_values_with_float_conversion:
         __convert_values_to_float(file_object)
@@ -306,41 +306,33 @@ def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
     
     return race_info
 
-
+#   READY
 def save_data_csv_coma_format(file_object, log_date : str, log_time : str):
     """
     This function is responsible for storage of modified file into a new file
     """
     import csv
 
-
-
-    new_file = open(f"cleaned_data_{log_date.replace('-','_')}_{log_time.replace(':','_')}.csv",'w')
-
+    new_file = open(f"cleaned_data_{log_date.replace('-','_')}_" +
+                    f"{log_time.replace(':','_')}.csv",'w')
     csvwriter = csv.writer(new_file)
-
-    # csvwriter.writerows(csvreader)
-    for row in csvreader:
-        csvwriter.writerow([str(a).replace('.',',') for a in row])
+    
+    csvwriter.writerows(file_object)
 
     new_file.close()
 
 
 if __name__ == "__main__":
-    # import csv
-    # file = open('all_laps_motec.csv')
-    # csvreader = list(csv.reader(file))
+    import csv
+    file = open('all_laps_motec.csv')
+    csvreader = list(csv.reader(file))
 
-    # prepare_data(csvreader)
-    # save_data_csv_coma_format(csvreader)
-
-    # import time
-    # value = time.time_ns()
-    # __even_out_comma_notation_str(csvreader)
-    # value1 = time.time_ns()
-    # print(f"{(value1 - value)/1000000000:f}")
+    import time
+    value = time.time_ns()
+    race_data = prepare_data(csvreader)
+    save_data_csv_coma_format(csvreader, race_data['log_date'], race_data['log_time'])
+    value1 = time.time_ns()
+    print(f"{(value1 - value)/1000000000:f}")
     
-    # for i in range(20):
-    #     print(str(csvreader[i])[:80])
 
-    # file.close()
+    file.close()
