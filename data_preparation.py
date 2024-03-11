@@ -153,14 +153,16 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
             print(f"Removing 2,3, and 4 row - first one is title : {file_object[0][:20]}")
         file_object = file_object[0] + file_object[3:]
 
-
-def __remove_unnecessary_colums(file_object, verbose : bool = False):
+#   READY
+def __remove_unnecessary_colums(file_object, custom_to_remove : list, 
+                                verbose : bool = False):
     """
     This function allows to remove unnecessary columns which are not
     necessary for our data analysis
     """    
 
-    to_remove = ['SUS_TRAVEL_LF',
+    if custom_to_remove == None:
+        to_remove = ['SUS_TRAVEL_LF',
                 'SUS_TRAVEL_RF',
                 'SUS_TRAVEL_LR',
                 'SUS_TRAVEL_RR',
@@ -192,6 +194,9 @@ def __remove_unnecessary_colums(file_object, verbose : bool = False):
                 'BUMPSTOP_FORCE_RF',
                 'BUMPSTOP_FORCE_LR',
                 'BUMPSTOP_FORCE_RR']
+    else:
+        to_remove = custom_to_remove
+
 
     columns_to_remove = [file_object[0].index(i) for i in to_remove]
 
@@ -210,7 +215,7 @@ def __remove_unnecessary_colums(file_object, verbose : bool = False):
     if verbose:
         print(f"\nSuccessfully removed {len(to_remove)} columns")
 
-
+#   READY
 def __convert_values_to_float(file_object):
     """
     The purpose of this function is to convert all values to float
@@ -220,47 +225,97 @@ def __convert_values_to_float(file_object):
         if row:
             file_object[row] = list(map(float, file_object[row]))
 
+#   READY
+def __even_out_comma_notation_str(file_object):
+    """
+    This funciton is responsible for converting each value to string
+    """
 
-def __fill_missing_lap_data(file_object):
+    # This is alternative solution to the nested in loop below
+    # It is commented out because it explains better what is done
+    # But is around ~30% slower
+
+    # def convert(value):
+    #     if '.' in value:
+    #         value.replace('.',',')
+    #         return value
+    #     elif ',' in value:
+    #         return value
+    #     else:
+    #         return value +',0'
+
+    for row in range(len(file_object)):
+        # file_object[row] = [convert(a) for a in file_object[row]]
+        file_object[row] = [a.replace('.',',') if '.' in a else 
+                                a if ',' in a else a+',0' 
+                                    for a in file_object[row]]
+
+#   READY
+def __fill_missing_lap_data(file_object, lap_info : list[list], 
+                            first_lap_no : int = 1, verbose : bool = False):
     import math
     column = file_object[0].index('LAP_BEACON')
 
-    lap = 1
-
-    last_time = track_summary['laps_start_end'][str(lap)]['end']
+    lap = str(first_lap_no)
+    last_time = lap_info[lap]['end']
+    if verbose:
+        print(f"Filling out rows in lap {lap}")
 
     for row in range(1,len(file_object)):
         if file_object[row][0] <= last_time:
             file_object[row][column] = lap
         else:
-            lap += 1
+            lap = str(int(lap) + 1)
             try:
-                last_time = track_summary['laps_start_end'][str(lap)]['end']
+                last_time = lap_info[lap]['end']
             except:
                 last_time = math.inf
             file_object[row][column] = lap
+            if verbose:
+                print(f"Filling out rows in lap {lap}")
 
+    if verbose:
+        print("Filling out rows completed")
 
-def prepare_data(file_object, verbose : bool = False):
+#   READY
+def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
+                 convert_values_with_float_conversion : bool = False,
+                 advanced_row_removal : bool = False,
+                 custom_column_remove_list : list = None,
+                 custom_lap_numering : bool = False
+                 ) -> dict:
     """
-    This is general function which is responsible 
+    This is general function which is responsible for data preparation
+
+    This function returns race informaiton in form of a dictionary
     """
-    __extract_general_data(file_object, verbose)
+    race_info = __extract_general_data(file_object, make_file, verbose)
     if verbose: print()
-    __remove_unnecessary_rows(file_object, verbose)
+    __remove_unnecessary_rows(file_object, advanced_row_removal, verbose)
     if verbose: print()
-    __remove_unnecessary_colums(file_object, verbose)
-    __convert_values_to_float(file_object)
-    __fill_missing_lap_data(file_object)
+    __remove_unnecessary_colums(file_object, custom_column_remove_list, verbose)
+    if verbose: print()
+
+    __fill_missing_lap_data(file_object, race_info['lap_info'], custom_lap_numering,
+                            verbose)
+
+    if convert_values_with_float_conversion:
+        __convert_values_to_float(file_object)
+    else:
+        __even_out_comma_notation_str(file_object)
+    
+    return race_info
 
 
-def save_data_csv_coma_format(file_object):
+def save_data_csv_coma_format(file_object, log_date : str, log_time : str):
     """
     This function is responsible for storage of modified file into a new file
     """
     import csv
 
-    new_file = open(f"cleaned_data_{track_summary['log_date'].replace('-','_')}_{track_summary['log_time'].replace(':','_')}.csv",'w')
+
+
+    new_file = open(f"cleaned_data_{log_date.replace('-','_')}_{log_time.replace(':','_')}.csv",'w')
 
     csvwriter = csv.writer(new_file)
 
@@ -272,21 +327,20 @@ def save_data_csv_coma_format(file_object):
 
 
 if __name__ == "__main__":
-    # print("This file is should only contain function which can later be used to" +
-    #        "work on data. Therefore if you open this file this message is visible." +
-    #        "To use function of from this file open proper file")
-    # print()
-    # input("Press Enter to close the widndow ... ")
-    import csv
-    file = open('all_laps_motec.csv')
-    csvreader = list(csv.reader(file))
+    # import csv
+    # file = open('all_laps_motec.csv')
+    # csvreader = list(csv.reader(file))
 
     # prepare_data(csvreader)
     # save_data_csv_coma_format(csvreader)
 
-    # __remove_unnecessary_rows(csvreader, True)
-
+    # import time
+    # value = time.time_ns()
+    # __even_out_comma_notation_str(csvreader)
+    # value1 = time.time_ns()
+    # print(f"{(value1 - value)/1000000000:f}")
+    
     # for i in range(20):
     #     print(str(csvreader[i])[:80])
 
-    file.close()
+    # file.close()
