@@ -4,6 +4,7 @@ from Motec software. This way one can easily clean data just by using prepared
 funtions
 """
 
+#   READY
 def __extract_general_data(file_object, make_file : bool = False,
                            verbose : bool = False) -> dict:
     """
@@ -59,14 +60,14 @@ def __extract_general_data(file_object, make_file : bool = False,
         for stats in track_summary:
             if stats == 'beacon_makers' or stats == 'laps_start_end':
                 continue
-            ts += (f"{stats.capitalize():20} : {track_summary[stats]}") + '\n'
+            ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
 
-        print("\nLap times\n") # line separator for clear display of data
+        ts += "\nLap times\n\n" # line separator for clear display of data
 
         # display each lap times
         for i in range(len(laps_start_end)):
             start, end = laps_start_end[str(i + 1)].values()
-            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   {(end - start):.3f}s' + '\n'
+            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   {(end - start):.3f}s\n'
         
         ts.strip()
 
@@ -76,23 +77,23 @@ def __extract_general_data(file_object, make_file : bool = False,
         print(__display_track_summary())
 
     if make_file:
-        new_file = f"data_information_{track_summary['log_date'].replace('-','_')}_{track_summary['log_time'].replace(':','_')}.csv"
+        new_file = f"data_information_{track_summary['log_date'].replace('-','_')}_{track_summary['log_time'].replace(':','_')}.txt"
         
         if verbose:
             print(f"Creting file '{new_file}'")
 
         new_file = open(new_file, "w")
+        ts = __display_track_summary()
 
         if verbose:
             print("Printing all information from the file:\n")
-            ts = __display_track_summary()
             new_file.write(ts)
             print(ts,'\n')
         else:
             new_file.write(ts)
         
-
-
+        new_file.close()
+        
     return track_summary
 
 
@@ -273,9 +274,9 @@ if __name__ == "__main__":
     # prepare_data(csvreader)
     # save_data_csv_coma_format(csvreader)
 
-    __remove_unnecessary_rows(csvreader, True)
+    # __remove_unnecessary_rows(csvreader, True)
 
-    for i in range(20):
-        print(str(csvreader[i])[:80])
+    # for i in range(20):
+    #     print(str(csvreader[i])[:80])
 
     file.close()
