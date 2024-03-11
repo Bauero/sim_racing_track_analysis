@@ -96,13 +96,23 @@ def __extract_general_data(file_object, make_file : bool = False,
         
     return track_summary
 
-
-def __remove_unnecessary_rows(file_object, hard_coded : bool = False,
+#   READY
+def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
                                verbose : bool = False) -> None:
     """
     This function is calles to remove data which are not important in our program
     aka. empty rows,
     or rows which contains not important information [like units]
+
+    Function contains two different solutions. By default (hard_coded == True)
+    function would simply erase all 14 first rows (leaving first row as titles)
+    and then remove rows 2-4 which contains units and 2 empty rows. However any
+    changes to rows, as well as empty rows wouldn't be detected. 
+    
+    Therefore one can run this function with option 'hard_coded' set to False.
+    Then function will automatically parse file to remove any empty rows and rows
+    which are not column's title's row (the one, which in first column has 
+    'Time' value)
     """
 
     if hard_coded:
