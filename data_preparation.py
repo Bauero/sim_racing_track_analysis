@@ -8,6 +8,7 @@ import csv
 import os
 from tkinter import filedialog
 
+sign = '\\' if os.name == 'nt' else '/'
 to_remove = ['SUS_TRAVEL_LF',
             'SUS_TRAVEL_RF',
             'SUS_TRAVEL_LR',
@@ -321,7 +322,6 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str, speci
     import csv
     
     if special_path:
-        sign = str('\\' if os.name == 'nt' else '/')
         file_path = f"{special_path}{sign}cleaned_data_{log_date.replace('-','_')}_"+\
         f"{log_time.replace(':','_')}.csv"
     else:
@@ -339,17 +339,7 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str, speci
 def __clean():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-#   READY
-def option1(v : bool):
-
-    file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
-    divide_sign = '\\' if os.name == 'nt' else '/'
-
-    __clean()
-    if v:
-        print(f"\nYou've choosen file {file_path.split(divide_sign)[-1]}")
-        print(f"Full path to file {file_path}")
-
+def __interactive_config():
     confimed = False
     mk_file = False
     cov_val_fl = False
@@ -465,6 +455,20 @@ def option1(v : bool):
         else:
             confimed = True
 
+    return mk_file, cov_val_fl, h_cod_rem, col_to_rem
+
+#   READY
+def option1(v : bool):
+
+    file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
+
+    __clean()
+    if v:
+        print(f"\nYou've choosen file {file_path.split(sign)[-1]}")
+        print(f"Full path to file {file_path}")
+
+    mk_file, cov_val_fl, h_cod_rem, col_to_rem = __interactive_config()
+
     __clean()
 
     print("Processing file ...")
@@ -473,22 +477,82 @@ def option1(v : bool):
     csvreader = list(csv.reader(file))
 
     try:
-        race_data, processed_file = prepare_data(csvreader, mk_file, v, cov_val_fl, h_cod_rem, col_to_rem)
-        ans = input(r"File processed - store it in the same directory as origin file? [y\N] ")
+        race_data, processed_file = prepare_data(csvreader, mk_file, v, cov_val_fl,
+                                                  h_cod_rem, col_to_rem)
+        ans = input(r"File processed - store it in the same directory as origin" +
+                    r"file? [y\N] ")
         ans = ans.strip().lower()
-        path = divide_sign.join(file_path.split(divide_sign)[0:-1])
+        path = sign.join(file_path.split(sign)[0:-1])
         if ans == 'n':
             path = filedialog.askdirectory(initialdir=path)
-        save_data_csv_coma_format(processed_file,race_data['log_date'], race_data['log_time'], path)
-        input("\n\033[92mOperation finished\033[0m\n\nPress Enter to continue >>>")
+        save_data_csv_coma_format(processed_file,race_data['log_date'],
+                                  race_data['log_time'], path)
+        input("\n\033[92mOperation finished\033[0m\n\nPress Enter to " +
+              "continue >>>")
     except KeyError as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
     
-    __clean()
-    
 
-def option2():
-    print("Option 2")
+def option2(v):
+    __clean()
+    mode = ''
+    while True:
+        odp = input("Choose if you want to run interactive mode (option 1 on " +
+                    "repeat) or you want to make one settings for all files\n\n" + 
+                "i - interactive mode (set params to all files individually)\n" +
+                "g - generall (set once, run for all) \n\n>>> ").strip().lower()
+        
+        if odp == "i":
+            mode = "i" ; break
+        elif odp == "g":
+            mode = "g" ; break
+
+    __clean()
+
+    match mode:
+        case "i":
+            while True:
+                option1(v)
+                __clean()
+                a = input("Continue (press Enter) or Finish (write 'c' and Enter)\n\n>>> ")
+                if a.strip().lower() == "c": break
+        case "g":
+            mk_file, cov_val_fl, h_cod_rem, col_to_rem = __interactive_config()
+
+            files = filedialog.askopenfilenames(filetypes=[("CSV","*.csv")])
+
+            data_to_process = []
+            processed_size = 0
+            sum_of_sizes = 0
+            for file in files:
+                size = int(os.stat(file).st_size)
+                file_name = file.split(sign)[-1]
+                file_path = file[:file.index(file_name)]
+                data_to_process.append({
+                    "file_name" : file_name,
+                    "file_path" : file_path,
+                    "size" : size
+                })
+
+                sum_of_sizes += size
+
+            for elem in data_to_process:
+                file_name, file_path, size = elem.values()
+                print(f"Processing '{file_name}' ...")
+                try:
+                    file = open(file_path + sign + file_name)
+                    csvreader = list(csv.reader(file))
+                    race_data, processed_file = prepare_data(csvreader, mk_file, v, cov_val_fl, h_cod_rem, col_to_rem)
+                    save_data_csv_coma_format(processed_file,race_data['log_date'], race_data['log_time'], file_path)
+                    processed_size += size
+                    print(f"File '{file_name}' processed - progress {processed_size/sum_of_sizes:.1%}")
+                except Exception as e:
+                    print(f"\033[91m Couldn't process file {file_name} - {e}\033[0m")
+                    odp = input(r"Do you want to continue? [y\N] ")
+                    if odp == "n": break
+            
+            input("\n\033[92mFile processing finished\033[0m\n\nPress Enter to go back to the menu >>> ")
+
 
 def option3():
     print("Option 3")
@@ -530,10 +594,14 @@ def menu():
                 case "1":
                     option1(verbose)
                     tmp = True
+                    __clean()
                 case "2":
                     option2(verbose)
+                    tmp = True
+                    __clean()
                 case "3":
                     option3(verbose)
+                    __clean()
                 case "4":
                     verbose = not verbose
                     if verbose:
