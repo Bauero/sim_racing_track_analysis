@@ -492,8 +492,8 @@ def option1(v : bool):
     except KeyError as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
     
-
-def option2(v):
+#   READY
+def option2(v : bool):
     __clean()
     mode = ''
     while True:
@@ -553,9 +553,10 @@ def option2(v):
             
             input("\n\033[92mFile processing finished\033[0m\n\nPress Enter to go back to the menu >>> ")
 
-
+#   READY
 def option3():
     print("Option 3")
+
 
 def menu():
 
