@@ -4,6 +4,39 @@ from Motec software. This way one can easily clean data just by using prepared
 funtions
 """
 
+to_remove = ['SUS_TRAVEL_LF',
+            'SUS_TRAVEL_RF',
+            'SUS_TRAVEL_LR',
+            'SUS_TRAVEL_RR',
+            'BRAKE_TEMP_LF',
+            'BRAKE_TEMP_RF',
+            'BRAKE_TEMP_LR',
+            'BRAKE_TEMP_RR',
+            'TYRE_PRESS_LF',
+            'TYRE_PRESS_RF',
+            'TYRE_PRESS_LR',
+            'TYRE_PRESS_RR',
+            'TYRE_TAIR_LF',
+            'TYRE_TAIR_RF',
+            'TYRE_TAIR_LR',
+            'TYRE_TAIR_RR',
+            'WHEEL_SPEED_LF',
+            'WHEEL_SPEED_RF',
+            'WHEEL_SPEED_LR',
+            'WHEEL_SPEED_RR',
+            'BUMPSTOPUP_RIDE_LF',
+            'BUMPSTOPUP_RIDE_RF',
+            'BUMPSTOPUP_RIDE_LR',
+            'BUMPSTOPUP_RIDE_RR',
+            'BUMPSTOPDN_RIDE_LF',
+            'BUMPSTOPDN_RIDE_RF',
+            'BUMPSTOPDN_RIDE_LR',
+            'BUMPSTOPDN_RIDE_RR',
+            'BUMPSTOP_FORCE_LF',
+            'BUMPSTOP_FORCE_RF',
+            'BUMPSTOP_FORCE_LR',
+            'BUMPSTOP_FORCE_RR']
+
 #   READY
 def __extract_general_data(file_object, make_file : bool = False,
                            verbose : bool = False) -> dict:
@@ -165,42 +198,6 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
     necessary for our data analysis
     """    
 
-    if custom_to_remove == None:
-        to_remove = ['SUS_TRAVEL_LF',
-                'SUS_TRAVEL_RF',
-                'SUS_TRAVEL_LR',
-                'SUS_TRAVEL_RR',
-                'BRAKE_TEMP_LF',
-                'BRAKE_TEMP_RF',
-                'BRAKE_TEMP_LR',
-                'BRAKE_TEMP_RR',
-                'TYRE_PRESS_LF',
-                'TYRE_PRESS_RF',
-                'TYRE_PRESS_LR',
-                'TYRE_PRESS_RR',
-                'TYRE_TAIR_LF',
-                'TYRE_TAIR_RF',
-                'TYRE_TAIR_LR',
-                'TYRE_TAIR_RR',
-                'WHEEL_SPEED_LF',
-                'WHEEL_SPEED_RF',
-                'WHEEL_SPEED_LR',
-                'WHEEL_SPEED_RR',
-                'BUMPSTOPUP_RIDE_LF',
-                'BUMPSTOPUP_RIDE_RF',
-                'BUMPSTOPUP_RIDE_LR',
-                'BUMPSTOPUP_RIDE_RR',
-                'BUMPSTOPDN_RIDE_LF',
-                'BUMPSTOPDN_RIDE_RF',
-                'BUMPSTOPDN_RIDE_LR',
-                'BUMPSTOPDN_RIDE_RR',
-                'BUMPSTOP_FORCE_LF',
-                'BUMPSTOP_FORCE_RF',
-                'BUMPSTOP_FORCE_LR',
-                'BUMPSTOP_FORCE_RR']
-    else:
-        to_remove = custom_to_remove
-
     columns_to_remove = [file_object[0].index(i) for i in to_remove]
 
     if verbose:
@@ -283,7 +280,7 @@ def __fill_missing_lap_data(file_object, lap_info : list[list], verbose : bool =
 def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
-                 custom_column_remove_list : list = None,
+                 custom_column_remove_list : list = to_remove,
                  ) -> dict:
     """
     This is general function which is responsible for data preparation
@@ -322,17 +319,68 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str):
     new_file.close()
 
 
-if __name__ == "__main__":
-    import csv
-    file = open('all_laps_motec.csv')
-    csvreader = list(csv.reader(file))
+def option1():
+    print("Option 1")
 
-    import time
-    value = time.time_ns()
-    race_data = prepare_data(csvreader)
-    save_data_csv_coma_format(csvreader, race_data['log_date'], race_data['log_time'])
-    value1 = time.time_ns()
-    print(f"{(value1 - value)/1000000000:f}")
+def option2():
+    print("Option 2")
+
+def option3():
+    print("Option 3")
+
+def option4():
+    print("Option 4")
+
+def menu():
+
+    working = True
+    print("Welcome to data preparation program. Here are the available options:")
+    print("1 - modify specific file")
+    print("2 - modify multiple files")
+    print("3 - modify all files in specified directory")
+    print("4 - enable verbose (all operation explicitly described)")
+    print("5 - exit", end = "\n")
+
+
+    while working:
+        odp  = input("\nChoose option: ").strip().lower()
+
+        if len(odp) > 1:
+            print("Given value is too long !!!")
+            continue
+        elif odp not in ["1","2","3","4","5"]:
+            print("Given value is not an option !!!")
+            continue
+        else:
+            match odp:
+                case "1":
+                    option1()
+                case "2":
+                    option2()
+                case "3":
+                    option3()
+                case "4":
+                    option4()
+                case "5":
+                    print("Exiting app ...")
+                    exit()
+                case "exit":
+                    print("Exiting app ...")
+                    exit()
+
+
+if __name__ == "__main__":
+    # import csv
+    # file = open('all_laps_motec.csv')
+    # csvreader = list(csv.reader(file))
+
+    # import time
+    # value = time.time_ns()
+    # race_data = prepare_data(csvreader)
+    # save_data_csv_coma_format(csvreader, race_data['log_date'], race_data['log_time'])
+    # value1 = time.time_ns()
+    # print(f"{(value1 - value)/1000000000:f}")
     
 
-    file.close()
+    # file.close()
+    menu()
