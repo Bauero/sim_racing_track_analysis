@@ -428,7 +428,7 @@ def __interactive_config():
                                 filetypes=[("Text file", "*.txt")])
                             try:
                                 f = open(file)
-                                col_to_rem = [a for a in f.readlines()]
+                                col_to_rem = [a.strip() for a in f.readlines()]
                                 f.close()
                                 break
                             except KeyError as e:
@@ -456,6 +456,25 @@ def __interactive_config():
             confimed = True
 
     return mk_file, cov_val_fl, h_cod_rem, col_to_rem
+
+def __multiple_file_processing(data_to_process, mk_file, cov_val_fl, h_cod_rem, 
+                               col_to_rem, processed_size, sum_of_sizes, v,
+                               directory_choosen : str = ""):
+    for elem in data_to_process:
+        file_name, file_path, size = elem.values()
+        save_dir = directory_choosen if directory_choosen else file_path
+        print(f"Processing '{file_name}' ...")
+        try:
+            file = open(file_path + sign + file_name)
+            csvreader = list(csv.reader(file))
+            race_data, processed_file = prepare_data(csvreader, mk_file, v, cov_val_fl, h_cod_rem, col_to_rem)
+            save_data_csv_coma_format(processed_file,race_data['log_date'], race_data['log_time'], save_dir)
+            processed_size += size
+            print(f"File '{file_name}' processed - progress {processed_size/sum_of_sizes:.1%}\n")
+        except Exception as e:
+            print(f"\033[91m Couldn't process file {file_name} - {e}\033[0m")
+            odp = input(r"Do you want to continue? [y\N] ")
+            if odp == "n": break
 
 #   READY
 def option1(v : bool):
@@ -488,7 +507,7 @@ def option1(v : bool):
         save_data_csv_coma_format(processed_file,race_data['log_date'],
                                   race_data['log_time'], path)
         input("\n\033[92mOperation finished\033[0m\n\nPress Enter to " +
-              "continue >>>")
+              "continue >>> ")
     except KeyError as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
     
@@ -536,27 +555,81 @@ def option2(v : bool):
 
                 sum_of_sizes += size
 
-            for elem in data_to_process:
-                file_name, file_path, size = elem.values()
-                print(f"Processing '{file_name}' ...")
-                try:
-                    file = open(file_path + sign + file_name)
-                    csvreader = list(csv.reader(file))
-                    race_data, processed_file = prepare_data(csvreader, mk_file, v, cov_val_fl, h_cod_rem, col_to_rem)
-                    save_data_csv_coma_format(processed_file,race_data['log_date'], race_data['log_time'], file_path)
-                    processed_size += size
-                    print(f"File '{file_name}' processed - progress {processed_size/sum_of_sizes:.1%}")
-                except Exception as e:
-                    print(f"\033[91m Couldn't process file {file_name} - {e}\033[0m")
-                    odp = input(r"Do you want to continue? [y\N] ")
-                    if odp == "n": break
+            __multiple_file_processing(data_to_process, mk_file, cov_val_fl, h_cod_rem, 
+                               col_to_rem, processed_size, sum_of_sizes, v)
             
             input("\n\033[92mFile processing finished\033[0m\n\nPress Enter to go back to the menu >>> ")
 
 #   READY
-def option3():
-    print("Option 3")
+def option3(v : bool):
+    
+    files_detected = None
+    folder_choosen = False
+    directory_choosen = ""
 
+    while not folder_choosen:
+        __clean()
+        folder_choosen = True
+        input("Press Enter to look for a directory from which you would like to process all files: >>> ")
+
+        directory = filedialog.askdirectory(mustexist=True)
+        
+        if not directory:
+            print("\033[91mNo directory was choosen !!!\033[0m")
+            ans = input("Press Enter to return to menu or write 'r' and press " +
+                        "Enter to try again >>> ").strip().lower()
+            if ans == "r":
+                folder_choosen = False
+                break
+
+        files = list(filter(lambda x: str(x).endswith(".csv"),list(os.listdir(directory))))
+        
+        if not files:
+            print("\033[91mNo CSV files detected in directory !!!\033[0m")
+            ans = input("Press Enter to return to menu or write 'r' and press " +
+                        "Enter to try again >>> ").strip().lower()
+            if ans == "r":
+                folder_choosen = False
+                break
+    
+        if v:
+            for a in files:
+                print(a)
+            print()
+
+        odp = input(fr"Detected {len(files)} files - proceed? [y\N] >>> ").strip().lower()
+        if odp == "n": folder_choosen = False
+        else:
+            files_detected = files
+            directory_choosen = directory
+
+    __clean()
+
+    mk_file, cov_val_fl, h_cod_rem, col_to_rem = __interactive_config()
+
+    __clean()
+
+    data_to_process = []
+    processed_size = 0
+    sum_of_sizes = 0
+
+    for file in files_detected:
+        size = int(os.stat(directory_choosen + sign + file).st_size)
+        data_to_process.append({
+            "file_name" : file,
+            "file_path" : directory,
+            "size" : size
+        })
+        sum_of_sizes += size
+
+    directory_choosen = directory_choosen + sign + "processed_data"
+    os.mkdir(directory_choosen)
+
+    __multiple_file_processing(data_to_process, mk_file, cov_val_fl, h_cod_rem, 
+                               col_to_rem, processed_size, sum_of_sizes, v, directory_choosen)
+        
+    input("\n\033[92mFile processing finished\033[0m\n\nPress Enter to go back to the menu >>> ")
+                
 
 def menu():
 
