@@ -6,6 +6,7 @@ it can be run by external program
 
 import csv
 import os
+import tkinter as tk
 from tkinter import filedialog
 
 sign = '\\' if os.name == 'nt' else '/'
@@ -42,9 +43,30 @@ to_remove = ['SUS_TRAVEL_LF',
             'BUMPSTOP_FORCE_LR',
             'BUMPSTOP_FORCE_RR']
 
-#   READY
-def __extract_general_data(file_object, make_file : bool = False,
-                           verbose : bool = False) -> dict:
+
+def __display_track_summary(track_summary, laps_start_end):
+
+    ts = ''
+
+    # display all stats except laps data (displayed separately below)
+    for stats in track_summary:
+        if stats == 'beacon_makers' or stats == 'laps_start_end':
+            continue
+        ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
+
+    ts += "\nLap times\n\n" # line separator for clear display of data
+
+    # display each lap times
+    for i in range(len(laps_start_end)):
+        start, end = laps_start_end[str(i + 1)].values()
+        ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   {(end - start):.3f}s\n'
+    
+    ts.strip()
+
+    return ts
+
+
+def __extract_general_data(file_object, verbose : bool = False) -> dict:
     """
     This funciton is responsible for removal of first rows in data which are
     responsible for storage of additional informaiton such as car model,
@@ -89,52 +111,14 @@ def __extract_general_data(file_object, make_file : bool = False,
     track_summary['laps_start_end'] = laps_start_end
 
     # Display informaiton in the console if 'verbose' param set to 'True'
-    
-    def __display_track_summary():
 
-        ts = ''
-
-        # display all stats except laps data (displayed separately below)
-        for stats in track_summary:
-            if stats == 'beacon_makers' or stats == 'laps_start_end':
-                continue
-            ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
-
-        ts += "\nLap times\n\n" # line separator for clear display of data
-
-        # display each lap times
-        for i in range(len(laps_start_end)):
-            start, end = laps_start_end[str(i + 1)].values()
-            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   {(end - start):.3f}s\n'
-        
-        ts.strip()
-
-        return ts
     
     if verbose:
         print(__display_track_summary())
-
-    if make_file:
-        new_file = f"data_information_{track_summary['log_date'].replace('-','_')}_{track_summary['log_time'].replace(':','_')}.txt"
-        
-        if verbose:
-            print(f"Creting file '{new_file}'")
-
-        new_file = open(new_file, "w")
-        ts = __display_track_summary()
-
-        if verbose:
-            print("Printing all information from the file:\n")
-            new_file.write(ts)
-            print(ts,'\n')
-        else:
-            new_file.write(ts)
-        
-        new_file.close()
         
     return track_summary
 
-#   READY
+
 def __remove_unnecessary_rows(file_object, hard_coded : bool = True, verbose : bool = False):
     """
     This function is calles to remove data which are not important in our program
@@ -194,7 +178,7 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True, verbose : b
     
     return file_object
 
-#   READY
+
 def __remove_unnecessary_colums(file_object, custom_to_remove : list, 
                                 verbose : bool = False):
     """
@@ -221,7 +205,7 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
 
     return file_object
 
-#   READY
+
 def __convert_values_to_float(file_object):
     """
     The purpose of this function is to convert all values to float
@@ -233,7 +217,7 @@ def __convert_values_to_float(file_object):
 
     return file_object
 
-#   READY
+
 def __even_out_comma_notation_str(file_object):
     """
     This funciton is responsible for converting each value to string
@@ -259,7 +243,7 @@ def __even_out_comma_notation_str(file_object):
                                     for a in file_object[row]]
     return file_object
 
-#   READY
+
 def __fill_missing_lap_data(file_object, lap_info : list[list], verbose : bool = False):
     import math
     column = file_object[0].index('LAP_BEACON')
@@ -287,8 +271,8 @@ def __fill_missing_lap_data(file_object, lap_info : list[list], verbose : bool =
 
     return file_object
 
-#   READY
-def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
+
+def prepare_data(file_object, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
                  column_remove_list : list = to_remove,
@@ -298,7 +282,7 @@ def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
 
     This function returns race informaiton in form of a dictionary
     """
-    race_info = __extract_general_data(file_object, make_file, verbose)
+    race_info = __extract_general_data(file_object, verbose)
     if verbose: print()
     file_object = __remove_unnecessary_rows(file_object, hard_codec_row_removal, verbose)
     if verbose: print()
@@ -314,7 +298,7 @@ def prepare_data(file_object, make_file : bool = False, verbose : bool = False,
     
     return race_info, file_object
 
-#   READY
+
 def save_data_csv_coma_format(file_object, log_date : str, log_time : str, special_path : str):
     """
     This function is responsible for storage of modified file into a new file
@@ -335,37 +319,68 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str, speci
 
     new_file.close()
 
-#   READY
+
 def __clean():
     os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def __ask_menu(func, value):
+    while True:
+        func()
+        print()
+        odp = input("Select new setting\n\033[92mT - True\n\033[91mF - False\033[0m\n\033[93mC - Cancel\033[0m\n\n>>> ").strip().lower()
+        print()
+        if odp == "t" or odp == "true":
+            value = True ; break
+        elif odp == "f" or odp == "false":
+            value = False ; break
+        elif odp == "c": break
+        print()
+    return value
+
 
 def __interactive_config():
     confimed = False
     mk_file = False
     cov_val_fl = False
     h_cod_rem = True
-    col_to_rem = to_remove
+    col_to_rem = []
 
-    print("\nBefore proceeding confirm current configuration:\n")
+    print("\nBefore proceeding confirm current configuration:\n\n\n")
 
     def conf_mkfile():
-        print("(1) \"Make separate file with informaiton red from " +
-                f"beginning of the file\" = {mk_file}")
+        if mk_file:
+            print(f"(1) Make separate file with informaiton read from beginning of the file = \033[92m{mk_file}\033[0m")
+        else:
+            print(f"(1) Make separate file with informaiton read from beginning of the file = \033[91m{mk_file}\033[0m")
     def conf_cvf():
-        print("(2) \"Perform conversion of values using float funtion instad " + 
-                f"of str modification (prefferd)\" = {cov_val_fl}")
+        if cov_val_fl:
+            print(f"(2) Perform conversion of values using float funtion instad of str modification (which is preferred) = \033[92m{cov_val_fl}\033[0m")
+        else:
+            print(f"(2) Perform conversion of values using float funtion instad of str modification (which is preferred) = \033[91m{cov_val_fl}\033[0m")
     def conf_hcr():    
-        print("(3) \"Remove rows using hard-coded colution (faster but can " +
-                "leave empty rows in the datataset if they are not in the usual " +
-                f"place)\" = {h_cod_rem}")
+        if h_cod_rem:
+            print(f"(3) Remove rows using hard-coded colution (faster but can leave empty rows in the datataset if they are not in the usual place) = \033[92m{h_cod_rem}\033[0m")
+        else:
+            print(f"(3) Remove rows using hard-coded colution (faster but can leave empty rows in the datataset if they are not in the usual place) = \033[91m{h_cod_rem}\033[0m")
     def conf_ctr():
-        print("(4) \"Columns which will be removed from data\":")
-        print(col_to_rem)
+        # print("(4) \"Columns which will be removed from data\":", col_to_rem)
+        if not col_to_rem:
+            print("(4) Columns which will be removed from data: \033[91m No columns to remove \033[0m ( [] )")
+        else:
+            print("(4) Columns which will be removed from data:\n[")
+            for n, col in enumerate(col_to_rem):
+                print(f"  '" + "\033[96m" + col + "\033[0m" + f"'{',' if n+1 < len(col_to_rem) else ''}")
+            print("]")
 
     conf_mkfile()
+    print()
     conf_cvf()
+    print()
     conf_hcr()
+    print()
     conf_ctr()
+    print()
 
     while not confimed:
 
@@ -373,52 +388,34 @@ def __interactive_config():
                   "element write numer and press Enter ('h' to write all) >>> ").strip()
 
         if o:
+            __clean()
             match o:
                 case "1":
-                    while True:
-                        print()
-                        odp = input(r"Select value - [y\N\ c - cancel] ").strip().lower()
-                        if odp == "y":
-                            mk_file = True ; break
-                        elif odp == "n":
-                            mk_file = False ; break
-                        elif odp == "c": break
+                    mk_file = __ask_menu(conf_mkfile, mk_file)
                     print("\nAfter change:")
                     conf_mkfile()
                 case "2":
-                    while True:
-                        print()
-                        odp = input(r"Select value - [y\N\ c - cancel] ").strip().lower()
-                        if odp == "y":
-                            cov_val_fl = True ; break
-                        elif odp == "n":
-                            cov_val_fl = False ; break
-                        elif odp == "c": break
+                    cov_val_fl = __ask_menu(conf_cvf, cov_val_fl)
                     print("\nAfter change:")
                     conf_cvf()
                 case "3":
-                    while True:
-                        print()
-                        odp = input(r"Select value - [y\N\ c - cancel] ").strip().lower()
-                        if odp == "y":
-                            h_cod_rem = True ; break
-                        elif odp == "n":
-                            h_cod_rem = False ; break
-                        elif odp == "c": break
+                    h_cod_rem = __ask_menu(conf_hcr, h_cod_rem)
                     print("\nAfter change:")
                     conf_hcr()
                 case "4":
                     while True:
+                        conf_ctr()
                         print()
                         odp = input("Choose what do you want to do:\n" +
-                                    "r - remove everything (no collumns will be removed)\n" +
-                                    "d - set value to default\n" +
+                                    "r - remove physical data\n" +
+                                    "d - set value to default (no columns removed)\n" +
                                     "u - upload config from file\n" +
-                                    "w - write names manually\n" +
+                                    "w - write names manually\n\n" +
                                     ">>> ").strip().lower()
-                        if odp == "r":
+                        print()
+                        if odp == "d":
                             col_to_rem = [] ; break
-                        elif odp == "d":
+                        elif odp == "r":
                             col_to_rem = to_remove ; break
                         elif odp == "u":
                             input("You have to select '.txt' file which has names " +
@@ -435,7 +432,7 @@ def __interactive_config():
                                 print(f"Data read failed - {e}")
                         elif odp == "w":
                             print("Write name of each column in new line. Pressing Enter " +
-                                  "in empty line will save resutl")
+                                  "in empty line will save result")
                             tmp = []
                             while True:
                                 ans = input(">>> ").strip()
@@ -447,15 +444,20 @@ def __interactive_config():
                     print("\nAfter change:")
                     conf_ctr()                           
                 case "h":
-                        print("\nAll current configuration")
+                        print("\nAll current configuration\n\n")
                         conf_mkfile()
+                        print()
                         conf_cvf()
+                        print()
                         conf_hcr()
+                        print()
                         conf_ctr()
+                        print()
         else:
             confimed = True
 
     return mk_file, cov_val_fl, h_cod_rem, col_to_rem
+
 
 def __multiple_file_processing(data_to_process, mk_file, cov_val_fl, h_cod_rem, 
                                col_to_rem, processed_size, sum_of_sizes, v,
@@ -476,10 +478,13 @@ def __multiple_file_processing(data_to_process, mk_file, cov_val_fl, h_cod_rem,
             odp = input(r"Do you want to continue? [y\N] ")
             if odp == "n": break
 
-#   READY
+
 def option1(v : bool):
 
+    root = tk.Tk()
+    root.withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
+    root.destroy()
 
     __clean()
     if v:
@@ -490,36 +495,63 @@ def option1(v : bool):
 
     __clean()
 
+    ans = input(r"Do you want to store file in the same place as the oryginal file? [y\n] >>> ")
+    ans = ans.strip().lower()
+    path = sign.join(file_path.split(sign)[0:-1])
+    if ans == 'n':
+        path = filedialog.askdirectory(mustexist=True, initialdir=path)
+
+    __clean()
+
     print("Processing file ...")
 
     file = open(file_path)
     csvreader = list(csv.reader(file))
 
+    race_data = processed_file = None
+
     try:
-        race_data, processed_file = prepare_data(csvreader, mk_file, v, cov_val_fl,
-                                                  h_cod_rem, col_to_rem)
-        ans = input(r"File processed - store it in the same directory as origin" +
-                    r"file? [y\N] ")
-        ans = ans.strip().lower()
-        path = sign.join(file_path.split(sign)[0:-1])
-        if ans == 'n':
-            path = filedialog.askdirectory(initialdir=path)
-        save_data_csv_coma_format(processed_file,race_data['log_date'],
-                                  race_data['log_time'], path)
-        input("\n\033[92mOperation finished\033[0m\n\nPress Enter to " +
-              "continue >>> ")
+        race_data, processed_file = prepare_data(csvreader, v, cov_val_fl, h_cod_rem, col_to_rem)
     except KeyError as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
+        input("\nPress Enter to go back to main menu >>> ")
+        return
     
-#   READY
+    try:
+        if mk_file:
+            new_file = f"{path}/data_information_{race_data['log_date'].replace('-','_')}_{race_data['log_time'].replace(':','_')}.txt"
+            
+            if v:
+                print(f"Creting file '{new_file}'")
+
+            new_file = open(new_file, "w")
+            ts = __display_track_summary(race_data,race_data['laps_start_end'])
+
+            if v:
+                print("Printing all information from the file:\n")
+                new_file.write(ts)
+                print(ts,'\n')
+            else:
+                new_file.write(ts)
+            
+            new_file.close()
+
+        save_data_csv_coma_format(processed_file,race_data['log_date'],race_data['log_time'], path)
+    except Exception as e:
+        print(f"\033[91mOperation failed: {e}\033[0m")
+        input("\nPress Enter to go back to main menu >>> ")
+        return
+
+    input("\n\033[92mOperation finished\033[0m\n\nPress Enter to continue >>> ")
+
 def option2(v : bool):
     __clean()
     mode = ''
     while True:
         odp = input("Choose if you want to run interactive mode (option 1 on " +
                     "repeat) or you want to make one settings for all files\n\n" + 
-                "i - interactive mode (set params to all files individually)\n" +
-                "g - generall (set once, run for all) \n\n>>> ").strip().lower()
+                "\033[95mi - interactive mode (set params to all files individually)\033[0m\n" +
+                "\033[96mg - generall (set once, run for all)\033[0m\n\n>>> ").strip().lower()
         
         if odp == "i":
             mode = "i" ; break
@@ -560,7 +592,7 @@ def option2(v : bool):
             
             input("\n\033[92mFile processing finished\033[0m\n\nPress Enter to go back to the menu >>> ")
 
-#   READY
+
 def option3(v : bool):
     
     files_detected = None
@@ -690,22 +722,6 @@ def menu():
     print("Exiting app ...")
     exit()
 
+
 if __name__ == "__main__":
-    
-    # file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
-    # divide_sign = '\\' if os.name == 'nt' else '/'
-
-    # file = open('all_laps_motec.csv')
-    # csvreader = list(csv.reader(file))
-
-    # import time
-    # value = time.time_ns()
-    # race_data = prepare_data(csvreader)
-    # save_data_csv_coma_format(csvreader, race_data['log_date'], race_data['log_time'],
-    #                           "/Users/piotrbauer/Desktop")
-    # value1 = time.time_ns()
-    # print(f"{(value1 - value)/1000000000:f}")
-    
-
-    # file.close()
     menu()
