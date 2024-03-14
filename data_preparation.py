@@ -45,6 +45,10 @@ to_remove = ['SUS_TRAVEL_LF',
 
 
 def __display_track_summary(track_summary, laps_start_end, color : bool = False):
+    """
+    This is helper function - it is used to prepare, and return track data
+    in readable form (to be stored in file or displayed in console)
+    """
 
     ts = ''
 
@@ -90,10 +94,8 @@ def __extract_general_data(file_object, verbose : bool = False) -> dict:
     """
     This funciton is responsible for removal of first rows in data which are
     responsible for storage of additional informaiton such as car model,
-    track
-    name,
-    distance. Those data are removed from the initial table but can later
-    be accessed via external variable
+    track, name, distance. Those data are removed from the initial table but 
+    can later be accessed via external variable
     """
 
     # Read all information which are stored in the beginning of the file
@@ -210,8 +212,7 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
 def __remove_unnecessary_colums(file_object, custom_to_remove : list, 
                                 verbose : bool = False):
     """
-    This function allows to remove unnecessary columns which are not
-    necessary for our data analysis
+    This function allows to remove columns from data
     """    
 
     if not custom_to_remove:
@@ -243,7 +244,8 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
 
 def __convert_values_to_float(file_object):
     """
-    The purpose of this function is to convert all values to float
+    The purpose of this function is to convert all values to float (except
+    first row)
     """
 
     for row in range(1,len(file_object)):
@@ -255,7 +257,9 @@ def __convert_values_to_float(file_object):
 
 def __even_out_comma_notation_str(file_object):
     """
-    This funciton is responsible for converting each value to string
+    This funciton is responsible for converting each value into 'number float';
+    It allows to process data in programs like Excel easily, but the result
+    file is bigger, because everything is treated as text
     """
 
     # This is alternative solution to the nested in loop below
@@ -281,6 +285,12 @@ def __even_out_comma_notation_str(file_object):
 
 def __fill_missing_lap_data(file_object, lap_info : list[list], 
                             verbose : bool = False):
+    """
+    This function fills out missing data.
+
+    Currently it only fills missing laps
+    """
+    
     import math
     column = file_object[0].index('LAP_BEACON')
 
@@ -336,7 +346,8 @@ def prepare_data(file_object, verbose : bool = False,
     
     if verbose:
         print("\n" + "-" * 80 + "\n\nAdding missing data\n")
-    file_object = __fill_missing_lap_data(file_object, race_info['laps_start_end'], 
+    file_object = __fill_missing_lap_data(file_object,
+                                          race_info['laps_start_end'], 
                                           verbose)
 
     if convert_values_with_float_conversion:
@@ -379,6 +390,10 @@ def __clean():
 
 
 def __display_path(new_file, title):
+    """
+    This function allows to show title in fancy way, with custom title
+    """
+    
     print("\033[92m" + f"{title}" +"\033[0m:\n\033[94m", end = "")
     length = 0
     parts_of_new_file = new_file.split(sign)
@@ -395,6 +410,14 @@ def __display_path(new_file, title):
 
 
 def __ask_menu(func, value):
+    """
+    This function allows to show T/F menu with 'cancel' option in nice way
+
+    - `func` - this is function which prints out current setting of value
+    which we are modyfying
+    - `value` - current value of setting
+    """
+
     while True:
         func()
         print()
@@ -412,6 +435,46 @@ def __ask_menu(func, value):
 
 
 def __interactive_config(file_path):
+    """
+    This is internal funciton which is responsible for configutation menu which
+    allows to set all necessary parameters.
+
+    `1` - This setting is responsible for creating an external file, with 
+    information stored at the beginning. This include track name, laps times 
+    summary, file data and file time. This can be a good option if you want 
+    to see breef summary of data
+
+    `2` - By default, all numbers are converted into more acceptable, Excel 
+    format. This means that each value is treated as a number written as text.
+    This is handy for further analysis in Excel, but not so, for python itself.
+    Storing numbers as text is also more resource-heavy, so default option is 
+    good, if you plan to import your data to Excel later. For data processing
+    in Python, conversion to float is recomended.
+
+    `3` - This option describes which algorithm will be used to clear file from
+    unnecessary data. By default hard-codec option is used. This means that
+    first 14 lines will be removed (all lines till title row), and then first
+    3 lines (usually line with units and 2 empty lines). This means that in our
+    data we still would be able to find empty lines and lines with other text
+    than title (title line is line with first name equal to 'Time', exacly).
+    Hard-coded option is generally faster, as it doesn't parse all lines, but
+    is not resiliant for some obvious loss
+
+    `4` -  This option allows to remove whole columns from data. It works, by 
+    finding numbers of provided columns and then removes data from all rows
+    which are located under those numbers (ex. 'time 2' - col. 45 - removes
+    elements which are on position 45 from all rows). By default no columns
+    are removed. You can can modify col. to remove using those methods.:
+    - `f` - remove physical data (all columns which are mentioned in file 
+    'physical_columns_to_remove.txt')
+    - `u` - upload file with columns names (file must be formated like
+    'physical_columns_to_remove.txt' - no additional lines, only enter on end)
+    - `w` - allows to write column names manually (you write name of each 
+    column, and press Enter. If you press Enter and don't write any name
+    this is considered as 'save current conf' option)
+    - `d` - set values back to default (no columns to remove)
+    """
+    
     confimed = False
     mk_file = False
     cov_val_fl = False
@@ -481,15 +544,15 @@ def __interactive_config(file_path):
                         conf_ctr()
                         print()
                         odp = input("Choose what do you want to do:\n" +
-                                    "r - remove physical data\n" +
-                                    "d - set value to default (no columns removed)\n" +
-                                    "u - upload config from file\n" +
-                                    "w - write names manually\n\n" +
-                                    ">>> ").strip().lower()
+                            "f - remove physical data\n" +
+                            "u - upload config from file\n" +
+                            "w - write names manually\n" +
+                            "d - set value to default ""(no columns removed)\n\n" +
+                            ">>> ").strip().lower()
                         print()
                         if odp == "d":
                             col_to_rem = [] ; break
-                        elif odp == "r":
+                        elif odp == "f":
                             col_to_rem = to_remove ; break
                         elif odp == "u":
                             input("You have to select '.txt' file which has names " +
@@ -542,8 +605,26 @@ def __multiple_file_processing(data_to_process,
                                sum_of_sizes, 
                                v,
                                directory_choosen : str = "."):
-    
+    """
+    This function allows to execute function `prepare data` multiple times
+
+    `mk_file` (bool) - Do you want to create additional file with information
+    which are stored on the front of the file.
+
+    `cov_val_fl` (bool) - What conversion mechanism you want to use - float
+    conversion (True) or string modification (False)
+
+    `h_cod_rem` (bool) - If line-removal is done using hard-coded solution
+
+    `sum_of_sizes` (int) - Value used to display progress in file conversion
+
+    `v` (bool) - Do you want to process file in 'verbose' mode
+
+    `directory_choosen` (str) - Directory path under which files will be saved
+    """
+
     __clean()
+
     for n, elem in enumerate(data_to_process):
         file_name, file_path, size = elem.values()
         save_dir = directory_choosen if directory_choosen else file_path
@@ -607,6 +688,15 @@ def __multiple_file_processing(data_to_process,
 
 
 def option1(v : bool):
+    """
+    This option is ment to allow to process one file individually. 
+    
+    1. You choose file
+
+    2. You set parameters
+
+    3. File is proceesed, and then you can return to main menu
+    """
 
     file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
 
@@ -685,6 +775,18 @@ def option1(v : bool):
 
 
 def option2(v : bool):
+    """
+    This option is ment to process multiple files easier than option 1.
+
+    1. You choose in which mode you would like to operate
+
+    - `i` - you go file by file (like option 1 on loop). This is handy if you
+    want different configuration for different files or want to easily test
+    impact of your configuration on the file
+    - `g` - you select files and then, they are processed one by one. This is
+    preferred if all files would have the same settings
+    """
+    
     __clean()
     mode = ''
     while True:
@@ -746,7 +848,18 @@ def option2(v : bool):
 
 
 def option3(v : bool):
+    """
+    This option is for processing files in bulk
+
+    1. You choose directory from which all files will be converted
+    \033[91mWarning\033[0m
+    Directory cannot contain folder 'processed_files' - if your directory
+    contains folder with this name, delete it, or move it somewhere
     
+    2. You will be asked for configuration, which will be used to process all
+    files   
+    """
+
     files_detected = None
     folder_choosen = False
     directory_choosen = ""
@@ -829,6 +942,10 @@ def option3(v : bool):
                 
 
 def menu():
+    """
+    This function is just a menu which allows to run internal function in easy
+    way, and be able to modify settings without programming knowledge.
+    """
 
     verbose = False
     __clean()
