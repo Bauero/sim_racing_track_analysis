@@ -44,7 +44,7 @@ to_remove = ['SUS_TRAVEL_LF',
             'BUMPSTOP_FORCE_RR']
 
 
-def __display_track_summary(track_summary, laps_start_end, color : bool = False):
+def display_track_summary(track_summary, laps_start_end, color : bool = False):
     """
     This is helper function - it is used to prepare, and return track data
     in readable form (to be stored in file or displayed in console)
@@ -90,7 +90,7 @@ def __display_track_summary(track_summary, laps_start_end, color : bool = False)
     return ts
 
 
-def __extract_general_data(file_object, verbose : bool = False) -> dict:
+def extract_general_data(file_object, verbose : bool = False) -> dict:
     """
     This funciton is responsible for removal of first rows in data which are
     responsible for storage of additional informaiton such as car model,
@@ -135,7 +135,7 @@ def __extract_general_data(file_object, verbose : bool = False) -> dict:
     # Display informaiton in the console if 'verbose' param set to 'True'
 
     if verbose:
-        print(__display_track_summary(track_summary, laps_start_end, True))
+        print(display_track_summary(track_summary, laps_start_end, True))
         
     return track_summary
 
@@ -331,7 +331,7 @@ def prepare_data(file_object, verbose : bool = False,
     This function returns race informaiton in form of a dictionary
     """
     if verbose: print("-" * 80 + "\n")
-    race_info = __extract_general_data(file_object, verbose)
+    race_info = extract_general_data(file_object, verbose)
 
     if verbose: print("-" * 80 + 
                       "\n\nRemoving unnecessary data from oryginal data " +
