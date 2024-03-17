@@ -18,9 +18,9 @@ def __read_data_term():
 
 
 def __read_data_choose_file():
-    ans = filedialog.askopenfile(filetypes=[("Coma Separated Value","*.csv")])
+    ans = filedialog.askopenfilename(filetypes=[("Coma Separated Value","*.csv")])
     if ans:
-        return __read_data(ans)
+        return ans #open(ans) #__read_data(ans)
     else:
         return None
 
@@ -29,6 +29,17 @@ def __read_data(path : str):
     return pd.read_csv(path)
 
 
+def __convert_list_to_DF(data : list[list]) -> pd.DataFrame:
+    return pd.DataFrame(data)
+
+
 if __name__ == "__main__":
-    print(__read_data_term())
+    from data_preparation import prepare_data
+    import csv
+    # values = [a.split(',') for a in ]
+    info, data = prepare_data(list(csv.reader(open(__read_data_choose_file()))),
+                        False,
+                        True,
+                        True)
+    print(__convert_list_to_DF(data).head())
     exit()
