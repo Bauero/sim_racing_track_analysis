@@ -373,10 +373,11 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str,
     
     if special_path:
         file_path = f"{special_path}{sign}cleaned_data_" +\
-                    f"{log_date.replace('-','_')}_{log_time.replace(':','_')}.csv"
+                    f"{log_date.replace('-','.').replace('/','.')}_" +\
+                    f"{log_time.replace(':','-')}.csv"
     else:
-        file_path = f"cleaned_data_{log_date.replace('-','_')}_" +\
-                    f"{log_time.replace(':','_')}.csv"
+        file_path = f"cleaned_data_{log_date.replace('-','.')}_" +\
+                    f"{log_time.replace(':','-')}.csv"
 
 
     new_file = open(file_path,'w')
