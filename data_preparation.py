@@ -435,6 +435,7 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str,
 
     new_file.close()
 
+
 if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
     print("This file contains functios, not CLI program :)\n")

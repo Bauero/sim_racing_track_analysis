@@ -81,7 +81,12 @@ def __interactive_config(file_path):
     Hard-coded option is generally faster, as it doesn't parse all lines, but
     is not resiliant for some obvious loss
 
-    `4` -  This option allows to remove whole columns from data. It works, by 
+    `4` - This option allows to modify default delimiter which will be used
+    while preprocessing file. This is useful, when we have file which uses
+    different separator than ',' (default in csv - Coma Separated Value).
+    Sometimes this is the reason why we cannot process the file corectly
+
+    `5` -  This option allows to remove whole columns from data. It works, by 
     finding numbers of provided columns and then removes data from all rows
     which are located under those numbers (ex. 'time 2' - col. 45 - removes
     elements which are on position 45 from all rows). By default no columns
@@ -98,8 +103,9 @@ def __interactive_config(file_path):
     
     confimed = False
     mk_file = False
-    cov_val_fl = False
+    cov_val_fl = True
     h_cod_rem = True
+    delimiter = ","
     col_to_rem = []
 
     if file_path:
@@ -122,25 +128,34 @@ def __interactive_config(file_path):
               str("\033[92m" if h_cod_rem else "\033[91m") +
               f"{h_cod_rem}\033[0m")
 
+    def conf_del():
+        print("\033[94m4\033[0m - Modify current delimiter. Current = '" +
+              f"{delimiter}\033[0m'")
+
     def conf_ctr():
         if not col_to_rem:
-            print("\033[94m4\033[0m - Columns which will be removed from data: " +
+            print("\033[94m5\033[0m - Columns which will be removed from data: " +
                   "\033[91m No columns to remove \033[0m ( [] )")
         else:
-            print("\033[94m4\033[0m - Columns which will be removed from data:\n[")
+            print("\033[94m5\033[0m - Columns which will be removed from data:\n[")
             for n, col in enumerate(col_to_rem):
                 print(f"  '" + "\033[96m" + col + "\033[0m" + 
                       f"'{',' if n+1 < len(col_to_rem) else ''}")
             print("]")
 
-    conf_mkfile()
-    print()
-    conf_cvf()
-    print()
-    conf_hcr()
-    print()
-    conf_ctr()
-    print()
+    def h():
+        conf_mkfile()
+        print()
+        conf_cvf()
+        print()
+        conf_hcr()
+        print()
+        conf_del()
+        print()
+        conf_ctr()
+        print()
+
+    h()
 
     while not confimed:
 
@@ -161,6 +176,27 @@ def __interactive_config(file_path):
                     h_cod_rem = __ask_menu(conf_hcr, h_cod_rem)
                     conf_hcr()
                 case "4":
+                    while True:
+                        conf_del()
+                        print()
+                        odp = input("Choose what do you wan to do:\n" +
+                            "s - set semicolon (;) as a separator\n" + 
+                            "t - set tabulator (\\t) as separator\n" +
+                            "e - set enter (\\n) as a separator\n" +
+                            "w - write symbol which would be a separator\n" +
+                            "d - set default (,)\n\n>>> ").strip().lower()
+                        match odp:
+                            case "s": delimiter = ";" ; break
+                            case "t": delimiter = "\t" ; break
+                            case "e": delimiter = "\n" ; break
+                            case "d": delimiter = "," ; break
+                            case "w":
+                                delimiter = print("\nEnter new separator >>> ", 
+                                            end="")
+                                break
+                    print("\n\033[95mAfter change:\033[0m\n")
+                    conf_del()
+                case "5":
                     while True:
                         conf_ctr()
                         print()
@@ -202,46 +238,43 @@ def __interactive_config(file_path):
                     print("\n\033[95mAfter change:\033[0m\n")
                     conf_ctr()                           
                 case "h":
-                        print("\n\n\033[93mCurrent config after changes\033[0m\n\n")
-                        conf_mkfile()
-                        print()
-                        conf_cvf()
-                        print()
-                        conf_hcr()
-                        print()
-                        conf_ctr()
-                        print()
+                    print("\n\n\033[93mCurrent config after changes\033[0m\n\n")
+                    h()
         else:
             confimed = True
 
-    return mk_file, cov_val_fl, h_cod_rem, col_to_rem
+    return mk_file, cov_val_fl, h_cod_rem, delimiter, col_to_rem
 
 
 def __multiple_file_processing(data_to_process,
-                               mk_file,
-                               cov_val_fl,
-                               h_cod_rem, 
-                               col_to_rem,
-                               processed_size, 
-                               sum_of_sizes, 
-                               v,
+                               mk_file : bool,
+                               cov_val_fl : bool,
+                               h_cod_rem : bool, 
+                               col_to_rem : bool,
+                               processed_size : int, 
+                               sum_of_sizes : int, 
+                               v : bool,
+                               delim : str = ",",
                                directory_choosen : str = "."):
     """
     This function allows to execute function `prepare data` multiple times
 
-    `mk_file` (bool) - Do you want to create additional file with information
+    - `mk_file` (bool) - Do you want to create additional file with information
     which are stored on the front of the file.
 
-    `cov_val_fl` (bool) - What conversion mechanism you want to use - float
+    - `cov_val_fl` (bool) - What conversion mechanism you want to use - float
     conversion (True) or string modification (False)
 
-    `h_cod_rem` (bool) - If line-removal is done using hard-coded solution
+    - `h_cod_rem` (bool) - If line-removal is done using hard-coded solution
 
-    `sum_of_sizes` (int) - Value used to display progress in file conversion
+    - `sum_of_sizes` (int) - Value used to display progress in file conversion
 
-    `v` (bool) - Do you want to process file in 'verbose' mode
+    - `v` (bool) - Do you want to process file in 'verbose' mode
 
-    `directory_choosen` (str) - Directory path under which files will be saved
+    - `delim` (str) - this param tells csv file preprocessor what delimiter was
+    used in the file, to separate values
+
+    - `directory_choosen` (str) - Directory path under which files will be saved
     """
 
     __clean()
@@ -249,13 +282,14 @@ def __multiple_file_processing(data_to_process,
     for n, elem in enumerate(data_to_process):
         file_name, file_path, size = elem.values()
         save_dir = directory_choosen if directory_choosen else file_path
-        print(f"Processing file {n+1}/{len(data_to_process)} - '{file_name}' ...\n")
+        print(f"Processing file {n+1}/{len(data_to_process)} - '{file_name}' " +
+              "...\n")
         try:
             full_csv_file_path = f"{file_path}" + \
                     f"{'' if file_path.endswith(sign) else sign}" +\
                     f"{file_name}"
             file = open(full_csv_file_path)
-            csvreader = list(csv.reader(file))
+            csvreader = list(csv.reader(file, delimiter=delim))
             race_data, processed_file = prepare_data(csvreader, 
                                                      v, 
                                                      cov_val_fl, 
@@ -295,7 +329,7 @@ def __multiple_file_processing(data_to_process,
                                       race_data['log_time'], save_dir)
             
             if v:
-                    print("\033[92mWriting information to file Sucessful\033[0m\n")
+                print("\033[92mWriting information to file Sucessful\033[0m\n")
 
             processed_size += size
             print("-" * 80 + "\n")
@@ -323,7 +357,7 @@ def option1(v : bool):
 
     __clean()
 
-    mk_file, cov_val_fl, h_cod_rem, col_to_rem = \
+    mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
         __interactive_config(file_path if v else '')
 
     __clean()
@@ -346,7 +380,7 @@ def option1(v : bool):
     print("Processing file ...\n")
 
     file = open(file_path)
-    csvreader = list(csv.reader(file))
+    csvreader = list(csv.reader(file, delimiter=delim))
 
     race_data = processed_file = None
 
@@ -433,7 +467,7 @@ def option2(v : bool):
                     "Continue (press Enter) or finish (write 'c' and Enter\n\n>>> ")
                 if a.strip().lower() == "c": break
         case "g":
-            mk_file, cov_val_fl, h_cod_rem, col_to_rem = \
+            mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
                 __interactive_config("")
 
             files = filedialog.askopenfilenames(filetypes=[("CSV","*.csv")])
@@ -461,6 +495,7 @@ def option2(v : bool):
                                        processed_size, 
                                        sum_of_sizes, 
                                        v,
+                                       delim,
                                        file_path)
             
             print("#" * 80 + "\n")
@@ -527,7 +562,7 @@ def option3(v : bool):
 
     __clean()
 
-    mk_file, cov_val_fl, h_cod_rem, col_to_rem = \
+    mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
         __interactive_config(directory_choosen)
 
     __clean()
@@ -549,12 +584,14 @@ def option3(v : bool):
     os.mkdir(directory_choosen)
 
     __multiple_file_processing(data_to_process,
+                               mk_file,
                                cov_val_fl,
                                h_cod_rem, 
                                col_to_rem,
                                processed_size,
                                sum_of_sizes,
                                v,
+                               delim,
                                directory_choosen)
     
     print("#" * 80 + "\n")
