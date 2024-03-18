@@ -275,7 +275,7 @@ def __multiple_file_processing(data_to_process,
                             "Writing information to .txt file under location")
 
                 txt_file = open(new_file, "w")
-                ts = __display_track_summary(race_data,
+                ts = display_track_summary(race_data,
                                              race_data['laps_start_end'])
 
                 if v:
@@ -373,7 +373,7 @@ def option1(v : bool):
                                "Writing information to file under location")
 
             new_file = open(new_file, "w")
-            ts = __display_track_summary(race_data, race_data['laps_start_end'])
+            ts = display_track_summary(race_data, race_data['laps_start_end'])
 
             if v:
                 print("\033[92mWriting information to file Sucessful\033[0m\n")
