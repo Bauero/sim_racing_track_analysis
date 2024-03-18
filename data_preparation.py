@@ -285,12 +285,17 @@ def __even_out_comma_notation_str(file_object):
     return file_object
 
 
-def __fill_missing_lap_data(file_object, lap_info : list[list], 
+def __fill_missing_lap_data(file_object,
+                            lap_info : dict[dict], 
+                            values_in_float : bool,
                             verbose : bool = False):
     """
-    This function fills out missing data.
+    This function fills out missing data. Right now, this function:
 
-    Currently it only fills missing laps
+    - fills out missing laps numbers
+    - adds column `Time_on_lap` which contains information about time, as if it
+    was reseted wherever driver passes start line
+    - adds column `Distance_on_lap` - resets distance on every start line
     """
     
     import math
@@ -303,6 +308,7 @@ def __fill_missing_lap_data(file_object, lap_info : list[list],
               f"{lap}" + "\033[0m")
 
     for row in range(1,len(file_object)):
+
         if float(file_object[row][0]) <= last_time:
             file_object[row][column] = lap
         else:
@@ -313,8 +319,49 @@ def __fill_missing_lap_data(file_object, lap_info : list[list],
                 last_time = math.inf
             file_object[row][column] = lap
             if verbose:
-                print("\033[94m" + f"Filling out rows in lap " + 
+                print("\033[94mFilling out information about lap " + 
                       "\033[0m\033[93m" + f"{lap}" + "\033[0m")
+
+    if verbose:
+        print()
+
+    distance_offset = 0.0
+    time_offset = 0.0
+    current_lap = 1
+
+    file_object[0].insert(1,"Time_on_lap")
+    file_object[0].insert(3,"Distance_on_lap")
+    full_laps = list(lap_info.keys())
+
+    if verbose:
+        print("\033[94mFilling out relative time and distance on lap " + 
+                    "\033[0m\033[93m1\033[0m")
+
+
+    for row in range(1, len(file_object)):
+        lap_from_data = file_object[row][2]
+        lfdf = float(lap_from_data)
+        if lfdf > current_lap:
+            current_lap = lfdf
+            if lap_from_data in full_laps:
+                time_offset = lap_info[lap_from_data]["start"]
+            else:
+                time_offset = lap_info[str(int(lfdf-1))]["end"]
+            distance_offset = float(file_object[row][1])
+            if verbose:
+                print("\033[94mFilling out relative time and distance on lap " + 
+                        "\033[0m\033[93m" + f"{int(lfdf)}" + "\033[0m")
+
+
+        tol = round(float(file_object[row][0]) - time_offset, 3)
+        dol = round(float(file_object[row][1]) - distance_offset, 3)
+
+        if not values_in_float:
+            tol = f"{tol}"
+            dol = f"{dol}"
+
+        file_object[row].insert(1,tol)
+        file_object[row].insert(3,dol)
 
     if verbose:
         print("\n\033[92mFilling out rows completed\033[0m")
@@ -350,6 +397,7 @@ def prepare_data(file_object, verbose : bool = False,
         print("\n" + "-" * 80 + "\n\nAdding missing data\n")
     file_object = __fill_missing_lap_data(file_object,
                                           race_info['laps_start_end'], 
+                                          convert_values_with_float_conversion,
                                           verbose)
 
     if convert_values_with_float_conversion:
