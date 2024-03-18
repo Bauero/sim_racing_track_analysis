@@ -11,6 +11,9 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import math
+
+INF = math.inf
 
 def show_speed_graph_whole(table):
     laps = table['LAP_BEACON'].unique()
@@ -30,13 +33,15 @@ def show_speed_graph_whole(table):
     plt.show()
 
 
-def show_speed_distance_graphs(datasets : list[pd.DataFrame], lap : int = 1):
+def show_speed_distance_one_lap(datasets : list[pd.DataFrame], lap : int = 1):
     plt.figure(figsize=(10,6))
     plt.title(f"Car comparison based on Distance - lap {lap}")
 
     plots = []
     highiest_distance = 0
     highiest_speed = 0
+    lowest_distance = INF
+    lowest_speed = INF
 
     for n, dts in enumerate(datasets):
         d_ft_d = dts[dts['LAP_BEACON'] == lap]
@@ -45,27 +50,33 @@ def show_speed_distance_graphs(datasets : list[pd.DataFrame], lap : int = 1):
                                 label = f'Car #{n+1}')
         plots.append(driver_dist)
         cms = max(d_ft_d['SPEED'])
+        ms = min(d_ft_d['SPEED'])
         cmd = max(d_ft_d['Distance'])
+        md = min(d_ft_d['Distance'])
         highiest_speed = cms if cms > highiest_speed else highiest_speed
         highiest_distance = cmd if cmd > highiest_distance else highiest_distance
+        lowest_distance = md if md < lowest_distance else lowest_distance
+        lowest_speed = ms if ms < lowest_speed else lowest_speed
 
     plt.grid(True)
     plt.legend(handles=plots, loc='upper right')
     plt.xlabel("Distance [m]")
     plt.ylabel("Speed [km/h]")
-    plt.yticks(np.arange(0,( highiest_speed // 10 + 1) * 10, 10))
-    plt.xticks(np.arange(0, (highiest_distance // 250 + 1) * 250 + 1, 250))
+    plt.yticks(np.arange(lowest_speed, highiest_speed, 10))
+    plt.xticks(np.arange(lowest_distance, highiest_distance, 500))
 
     return plots
 
 
-def show_speed_time_graphs(datasets : list[pd.DataFrame], lap : int = 1):
+def show_speed_time_one_lap(datasets : list[pd.DataFrame], lap : int = 1):
     plt.figure(figsize=(10,6))
     plt.title(f"Car comparison based on Time - lap {lap}")
 
     plots = []
     highiest_time = 0
     highiest_speed = 0
+    lowest_time = INF
+    lowest_speed = INF
 
     for n, dts in enumerate(datasets):
         d_ft_t = dts[dts['LAP_BEACON'] == lap]
@@ -75,15 +86,19 @@ def show_speed_time_graphs(datasets : list[pd.DataFrame], lap : int = 1):
         plots.append(driver_dist)
         cms = max(d_ft_t['SPEED'])
         cmt = max(d_ft_t.index)
+        ms = min(d_ft_t['SPEED'])
+        mt = min(d_ft_t.index)
         highiest_speed = cms if cms > highiest_speed else highiest_speed
         highiest_time = cmt if cmt > highiest_time else highiest_time
+        lowest_speed = ms if ms < lowest_speed else lowest_speed
+        lowest_time = mt if mt < lowest_time else lowest_time
 
     plt.grid(True)
     plt.legend(handles=plots, loc='upper right')
     plt.xlabel("Time [s]")
     plt.ylabel("Speed [km/h]")
-    plt.yticks(np.arange(0, (highiest_speed // 10 + 1) * 10 + 1, 10))
-    plt.xticks(np.arange(0, (highiest_time // 10 + 1) * 10 + 1 , 10))
+    plt.yticks(np.arange(lowest_speed, highiest_speed, 10))
+    plt.xticks(np.arange(lowest_time, highiest_time , 10))
 
     return plots
 
@@ -108,8 +123,8 @@ if __name__ == "__main__":
     data2 = data2.astype(float)
     data2[exceptions] = data2[exceptions].astype(int)
 
-    show_speed_distance_graphs([data, data2])
-    show_speed_time_graphs([data, data2])
+    show_speed_distance_one_lap([data, data2])
+    show_speed_time_one_lap([data, data2])
 
     plt.show()
 
