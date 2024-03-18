@@ -128,7 +128,8 @@ def extract_general_data(file_object, verbose : bool = False) -> dict:
     laps_start_end = {}
     tmp_start = float(track_summary['start_time'])
     for i in range(len(beacon_makers)):
-        laps_start_end[str(i + 1)] = {"start" : tmp_start, "end" : beacon_makers[i]}
+        laps_start_end[str(i + 1)] = {"start" : tmp_start, 
+                                      "end" : beacon_makers[i]}
         tmp_start = beacon_makers[i]
     track_summary['laps_start_end'] = laps_start_end
 
@@ -143,9 +144,9 @@ def extract_general_data(file_object, verbose : bool = False) -> dict:
 def __remove_unnecessary_rows(file_object, hard_coded : bool = True, 
                               verbose : bool = False):
     """
-    This function is calles to remove data which are not important in our program
-    aka. empty rows,
-    or rows which contains not important information [like units]
+    This function is calles to remove data which are not important in our 
+    program aka. empty rows, or rows which contains not important information 
+    [like units]
 
     Function contains two different solutions. By default (hard_coded == True)
     function would simply erase all 14 first rows (leaving first row as titles)
@@ -153,8 +154,8 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
     changes to rows, as well as empty rows wouldn't be detected. 
     
     Therefore one can run this function with option 'hard_coded' set to False.
-    Then function will automatically parse file to remove any empty rows and rows
-    which are not column's title's row (the one, which in first column has 
+    Then function will automatically parse file to remove any empty rows and 
+    rows which are not column's title's row (the one, which in first column has 
     'Time' value)
     """
 
@@ -198,7 +199,8 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
         file_object = file_object[14:]
 
         if verbose:
-            print("\033[93mRemoving 2,3, and 4 row - first one is title : \033[0m\n")
+            print("\033[93mRemoving 2,3, and 4 row - first one is title " + 
+                  ": \033[0m\n")
             ending = " ..." if len(str(file_object[0])) > 76 else ""
             print("\033[94m" + str(file_object[0])[:76] + ending + "\033[0m", 
                   end = "")
