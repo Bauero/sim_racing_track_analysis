@@ -3,17 +3,14 @@ This file is responsible for processing prepared data & should store all func.
 necessary to proprerly show properties of raw racing data.
 """
 
-import os
-from tkinter import filedialog
-import pandas as pd
-# from data_preparation import display_track_summary as __dts, \
-#                              extract_general_data as __egd
-import seaborn as sns
+from pandas import read_csv, DataFrame
+from tkinter import Tk
+from tkinter.filedialog import askopenfilenames, askdirectory
 import matplotlib.pyplot as plt
-import numpy as np
+from numpy import arange
 import math
-
 INF = math.inf
+
 
 def show_speed_graph_whole(table):
     laps = table['LAP_BEACON'].unique()
@@ -33,7 +30,7 @@ def show_speed_graph_whole(table):
     plt.show()
 
 
-def show_stats_one_lap_all_datasets(datasets : list[pd.DataFrame], 
+def show_stats_one_lap_all_datasets(datasets : list[DataFrame], 
                                     index_column : str = 'Time',
                                     data_column : str = 'SPEED',
                                     id_col_unit : str =  's',
@@ -126,50 +123,43 @@ def show_stats_one_lap_all_datasets(datasets : list[pd.DataFrame],
     return whole_plot, plots, title
 
 
-def main():
+def save_graphs_of_files(files, laps):
+    Tk().withdraw()
+    directory = askdirectory(title="Choose directory to save graphs")
+    if not directory: return
 
-    directory = "/Users/piotrbauer/Documents/SGGW/Semsetr_6/HANZE/" + \
-        "car_data_analysis/Clean_data/Clean_data/" + \
-        "dot_separated_additional_collumns"
-
-    path  = f"{directory}/cleaned_data_2.3.2024_15-03-03.csv"
-    path2 = f"{directory}/cleaned_data_3.3.2024_17-45-14.csv"
-    path3 = f"{directory}/cleaned_data_3.10.2024_14-32-04.csv"
-    path4 = f"{directory}/cleaned_data_3.12.2024_20-11-03.csv"
-
-    data = pd.read_csv(path, skip_blank_lines=True, header=0, index_col="Time",
-                        delimiter=',',decimal=',')
-    
-    data2 = pd.read_csv(path2, skip_blank_lines=True, header=0, index_col="Time",
-                        delimiter=',',decimal=',')
-    
-    data3 = pd.read_csv(path3, skip_blank_lines=True, header=0, index_col="Time",
-                        delimiter=',',decimal=',')
-    
-    data4 = pd.read_csv(path4, skip_blank_lines=True, header=0, index_col="Time",
-                        delimiter=',',decimal=',')
-
-    exceptions = ['LAP_BEACON']
-    not_exceptions = [x for x in data.columns.to_list() if x not in exceptions]
-
-    data = data.astype(float)
-    data[exceptions] = data[exceptions].astype(int)
-    data2 = data2.astype(float)
-    data2[exceptions] = data2[exceptions].astype(int)
-    data3 = data3.astype(float)
-    data3[exceptions] = data3[exceptions].astype(int)
-    data4 = data4.astype(float)
-    data4[exceptions] = data4[exceptions].astype(int)
-
-    for i in range(1,6):
+    for i in range(laps):
         whole_plot, plots, title = show_stats_one_lap_all_datasets(
-                                        [data, data2, data3, data4], 
+                                        files, 
                                         "Distance_on_lap",
                                         "SPEED",
                                         data_col_unit = 'km/h',
-                                        lap=i)
+                                        lap = i+1)
         whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
-    exit()
+
+
+def main():
+    Tk().withdraw()
+    fl_paths = askopenfilenames(initialdir="~", 
+                                title="Choose files with racing data",
+                                filetypes=[("CSV","*.csv")])
+
+    if not fl_paths: return
+    files = []
+    exceptions = ['LAP_BEACON']
+
+    for file in fl_paths:
+        data = read_csv(file, 
+                           skip_blank_lines=True, 
+                           header=0, 
+                           index_col="Time", 
+                           delimiter=',', 
+                           decimal=',')
+        data = data.astype(float)
+        data[exceptions] = data[exceptions].astype(int)
+        files.append(data)
+
+    save_graphs_of_files(files, 5)
 
 
 if __name__ == "__main__":
