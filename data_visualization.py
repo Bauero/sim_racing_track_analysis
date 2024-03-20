@@ -117,8 +117,8 @@ def show_stats_one_lap_all_datasets(datasets : list[DataFrame],
     plt.legend(handles=plots, loc='upper right')
     plt.xlabel(f"{index_column_to_disp.title()} [{id_col_unit}]")
     plt.ylabel(f"{data_column_to_disp.title()} [{data_col_unit}]")
-    plt.xticks(np.arange(lowest_index, highiest_index * 1.01, final_id_step))
-    plt.yticks(np.arange(lowest_data, highiest_data * 1.01, final_data_step))
+    plt.xticks(arange(lowest_index, highiest_index * 1.01, final_id_step))
+    plt.yticks(arange(lowest_data, highiest_data * 1.01, final_data_step))
 
     return whole_plot, plots, title
 
@@ -132,8 +132,8 @@ def save_graphs_of_files(files, laps):
         whole_plot, plots, title = show_stats_one_lap_all_datasets(
                                         files, 
                                         "Distance_on_lap",
-                                        "SPEED",
-                                        data_col_unit = 'km/h',
+                                        "EN_W",
+                                        data_col_unit = '',
                                         lap = i+1)
         whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
 
