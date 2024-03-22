@@ -31,7 +31,7 @@ def show_speed_graph_whole(table):
 
 
 def show_stats_one_lap_all_datasets(datasets : list[DataFrame], 
-                                    index_column : str = 'Time',
+                                    index_column : str = 'Time_on_lap',
                                     data_column : str = 'SPEED',
                                     id_col_unit : str =  's',
                                     data_col_unit : str = 'm/s',
@@ -132,8 +132,7 @@ def save_graphs_of_files(files, laps):
         whole_plot, plots, title = show_stats_one_lap_all_datasets(
                                         files, 
                                         "Distance_on_lap",
-                                        "EN_W",
-                                        data_col_unit = '',
+                                        "SPEED",
                                         lap = i+1)
         whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
 
