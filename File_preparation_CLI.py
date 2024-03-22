@@ -4,6 +4,7 @@ This file contains menu to operate data_preparation file
 
 import os
 from data_preparation import *
+from tkinter import Tk
 
 
 def __clean():
@@ -215,6 +216,7 @@ def __interactive_config(file_path):
                             input("You have to select '.txt' file which has names " +
                                   "of all columns which you want to remove in separate " +
                                   "lines\n\nPress Enter to find a File >>> ")
+                            Tk().withdraw()
                             file = filedialog.askopenfilename(
                                 filetypes=[("Text file", "*.txt")])
                             try:
@@ -352,7 +354,7 @@ def option1(v : bool):
 
     3. File is proceesed, and then you can return to main menu
     """
-
+    Tk().withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
 
     __clean()
@@ -469,7 +471,7 @@ def option2(v : bool):
         case "g":
             mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
                 __interactive_config("")
-
+            Tk().withdraw()
             files = filedialog.askopenfilenames(filetypes=[("CSV","*.csv")])
 
             data_to_process = []
