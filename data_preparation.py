@@ -4,10 +4,7 @@ from Motec software. By default this file can be use as a standalone app, but
 it can be run by external program
 """
 
-import csv
 import os
-import tkinter as tk
-from tkinter import filedialog
 
 sign = '\\' if os.name == 'nt' else '/'
 to_remove = ['SUS_TRAVEL_LF',
@@ -369,10 +366,14 @@ def __fill_missing_lap_data(file_object,
 
         try: tol = round(float(file_object[row][TIME]) - time_offset, 3)
         except ValueError:
-            tol = round(float(file_object[row][TIME].replace(",",".")) - time_offset, 3)
-        try:  dol = round(float(file_object[row][DISTANCE]) - distance_offset, 3)
+            tol = round(float(file_object[row][TIME].replace(",",".")) - \
+                        time_offset, 3)
+        
+        try:  dol = round(float(file_object[row][DISTANCE]) - \
+                          distance_offset, 3)
         except ValueError:
-            dol = round(float(file_object[row][DISTANCE].replace(",",".")) - distance_offset, 3)
+            dol = round(float(file_object[row][DISTANCE].replace(",",".")) - \
+                        distance_offset, 3)
        
         if not values_in_float:
             tol = f"{tol}"

@@ -5,6 +5,8 @@ This file contains menu to operate data_preparation file
 import os
 from data_preparation import *
 from tkinter import Tk
+import csv
+from tkinter import filedialog
 
 
 def __clean():
@@ -290,8 +292,8 @@ def __multiple_file_processing(data_to_process,
             full_csv_file_path = f"{file_path}" + \
                     f"{'' if file_path.endswith(sign) else sign}" +\
                     f"{file_name}"
-            file = open(full_csv_file_path)
-            csvreader = list(csv.reader(file, delimiter=delim))
+            # file = open(full_csv_file_path)
+            csvreader = list(csv.reader(full_csv_file_path, delimiter=delim))
             race_data, processed_file = prepare_data(csvreader, 
                                                      v, 
                                                      cov_val_fl, 
@@ -381,8 +383,8 @@ def option1(v : bool):
 
     print("Processing file ...\n")
 
-    file = open(file_path)
-    csvreader = list(csv.reader(file, delimiter=delim))
+    # file = open(file_path)
+    csvreader = list(csv.reader(file_path, delimiter=delim))
 
     race_data = processed_file = None
 
