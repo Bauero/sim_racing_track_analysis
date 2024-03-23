@@ -292,8 +292,8 @@ def __multiple_file_processing(data_to_process,
             full_csv_file_path = f"{file_path}" + \
                     f"{'' if file_path.endswith(sign) else sign}" +\
                     f"{file_name}"
-            # file = open(full_csv_file_path)
-            csvreader = list(csv.reader(full_csv_file_path, delimiter=delim))
+            file = open(full_csv_file_path)
+            csvreader = list(csv.reader(file, delimiter=delim))
             race_data, processed_file = prepare_data(csvreader, 
                                                      v, 
                                                      cov_val_fl, 
@@ -383,8 +383,8 @@ def option1(v : bool):
 
     print("Processing file ...\n")
 
-    # file = open(file_path)
-    csvreader = list(csv.reader(file_path, delimiter=delim))
+    file = open(file_path)
+    csvreader = list(csv.reader(file, delimiter=delim))
 
     race_data = processed_file = None
 
@@ -527,6 +527,7 @@ def option3(v : bool):
     while not folder_choosen:
         __clean()
         folder_choosen = True    
+        TK.
         directory = filedialog.askdirectory(mustexist=True)
         __clean
 
