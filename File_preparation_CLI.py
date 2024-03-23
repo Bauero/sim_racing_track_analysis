@@ -384,7 +384,7 @@ def option1(v : bool):
     print("Processing file ...\n")
 
     file = open(file_path)
-    csvreader = list(csv.reader(file, delimiter=delim))
+    csvreader = list(csv.reader(file_path, delimiter=delim))
 
     race_data = processed_file = None
 
@@ -527,7 +527,7 @@ def option3(v : bool):
     while not folder_choosen:
         __clean()
         folder_choosen = True    
-        TK.
+        Tk().withdraw()
         directory = filedialog.askdirectory(mustexist=True)
         __clean
 
