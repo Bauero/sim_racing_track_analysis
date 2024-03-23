@@ -4,10 +4,7 @@ from Motec software. By default this file can be use as a standalone app, but
 it can be run by external program
 """
 
-import csv
 import os
-import tkinter as tk
-from tkinter import filedialog
 
 sign = '\\' if os.name == 'nt' else '/'
 to_remove = ['SUS_TRAVEL_LF',
@@ -251,8 +248,11 @@ def __convert_values_to_float(file_object):
     """
 
     for row in range(1,len(file_object)):
-        if row:
-            file_object[row] = list(map(float, file_object[row]))
+        new_row = []
+        for value in file_object[row]:
+            try: new_row.append(float(value))
+            except ValueError: new_row.append(float(value.replace(",",".")))
+        file_object[row] = new_row
 
     return file_object
 
@@ -299,25 +299,33 @@ def __fill_missing_lap_data(file_object,
     """
     
     import math
-    column = file_object[0].index('LAP_BEACON')
+    LAP_BEACON = file_object[0].index('LAP_BEACON')
+    TIME = file_object[0].index('Time')
+    DISTANCE = file_object[0].index('Distance')
 
     lap = "1"
     last_time = lap_info[lap]['end']
     if verbose:
         print("\033[94m" + f"Filling out rows in lap " + "\033[0m\033[93m" + 
               f"{lap}" + "\033[0m")
+    
+    curr_time = None
 
     for row in range(1,len(file_object)):
 
-        if float(file_object[row][0]) <= last_time:
-            file_object[row][column] = lap
+        try: curr_time = float(file_object[row][TIME])
+        except ValueError: 
+            curr_time = float(file_object[row][TIME].replace(",","."))
+
+        if curr_time <= last_time:
+            file_object[row][LAP_BEACON] = lap
         else:
             lap = str(int(lap) + 1)
             try:
                 last_time = lap_info[lap]['end']
             except:
                 last_time = math.inf
-            file_object[row][column] = lap
+            file_object[row][LAP_BEACON] = lap
             if verbose:
                 print("\033[94mFilling out information about lap " + 
                       "\033[0m\033[93m" + f"{lap}" + "\033[0m")
@@ -329,42 +337,59 @@ def __fill_missing_lap_data(file_object,
     time_offset = 0.0
     current_lap = 1
 
-    file_object[0].insert(1,"Time_on_lap")
-    file_object[0].insert(3,"Distance_on_lap")
+    file_object[0].insert(TIME+1,"Time_on_lap")
+    file_object[0].insert(DISTANCE+2,"Distance_on_lap")
     full_laps = list(lap_info.keys())
 
     if verbose:
         print("\033[94mFilling out relative time and distance on lap " + 
                     "\033[0m\033[93m1\033[0m")
 
-
     for row in range(1, len(file_object)):
-        lap_from_data = file_object[row][2]
-        lfdf = float(lap_from_data)
+        lap_from_data = file_object[row][LAP_BEACON]
+        
+        try: lfdf = float(lap_from_data)
+        except ValueError:
+            lfdf = float(lap_from_data.replace(",","."))
+
         if lfdf > current_lap:
             current_lap = lfdf
             if lap_from_data in full_laps:
                 time_offset = lap_info[lap_from_data]["start"]
             else:
                 time_offset = lap_info[str(int(lfdf-1))]["end"]
-            distance_offset = float(file_object[row][1])
+            distance_offset = float(file_object[row][DISTANCE])
             if verbose:
                 print("\033[94mFilling out relative time and distance on lap " + 
                         "\033[0m\033[93m" + f"{int(lfdf)}" + "\033[0m")
 
 
-        tol = round(float(file_object[row][0]) - time_offset, 3)
-        dol = round(float(file_object[row][1]) - distance_offset, 3)
-
+        try: tol = round(float(file_object[row][TIME]) - time_offset, 3)
+        except ValueError:
+            tol = round(float(file_object[row][TIME].replace(",",".")) - \
+                        time_offset, 3)
+        
+        try:  dol = round(float(file_object[row][DISTANCE]) - \
+                          distance_offset, 3)
+        except ValueError:
+            dol = round(float(file_object[row][DISTANCE].replace(",",".")) - \
+                        distance_offset, 3)
+       
         if not values_in_float:
             tol = f"{tol}"
             dol = f"{dol}"
 
-        file_object[row].insert(1,tol)
-        file_object[row].insert(3,dol)
+        file_object[row].insert(TIME+1,tol)
+        file_object[row].insert(DISTANCE+2,dol)
 
     if verbose:
         print("\n\033[92mFilling out rows completed\033[0m")
+
+    for row in range(1,len(file_object)):
+        if values_in_float:
+            file_object[row] = [x if x != '' else 0.0 for x in file_object[row]]
+        else:
+            file_object[row] = [x if x != '' else "0" for x in file_object[row]]
 
     return file_object
 

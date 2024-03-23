@@ -99,13 +99,3 @@ When you choose option from main menu, you will have an option to modify default
     margin-right: auto;" alt="Verbose_file_processing" src="https://github.com/Bauero/sim_racing_track_analysis/assets/65217796/d5eef17e-adce-4d42-96be-6e5001216e8a">
   </div>
 </div>
-
-# Known issues 🪤
-
-So far there are some known issues related to python interpreter. They might occur when when processing file and might result in unexpected termination of program. Those are especially likely to occur when choosing custom place to save processed file. Unfortuantely current source of issue is unknown (and not likely to be a result of current implementation in code).
-
-Therefore, be aware that this might happend, and treat this program more like beta software (at least it's GUI version).
-<img style="display: block;
-    margin-left: auto;
-    margin-right: auto;" 
-    alt="Example_of_error" src="https://github.com/Bauero/sim_racing_track_analysis/assets/65217796/5903a79b-e6a3-433b-9605-08809b06cecb">
