@@ -68,12 +68,10 @@ def __interactive_config(file_path):
     summary, file data and file time. This can be a good option if you want 
     to see breef summary of data
 
-    `2` - By default, all numbers are converted into more acceptable, Excel 
-    format. This means that each value is treated as a number written as text.
-    This is handy for further analysis in Excel, but not so, for python itself.
-    Storing numbers as text is also more resource-heavy, so default option is 
-    good, if you plan to import your data to Excel later. For data processing
-    in Python, conversion to float is recomended.
+    `2` - By default, all numbers are converted into float values. This is 
+    recomended, if you want to process data in python. If you want to import 
+    your data to Excel, you should keep this option turned off, as it produces
+    bigger files and processing takes more time.
 
     `3` - This option describes which algorithm will be used to clear file from
     unnecessary data. By default hard-codec option is used. This means that
@@ -162,21 +160,32 @@ def __interactive_config(file_path):
 
     while not confimed:
 
-        o = input("\nTo modify config, write numer and press Enter\n" +
-                  "To save config and process file, press Enter\n" +
-                  "('h' to write all)\n>>> ").strip()
+        o = input("\nNumber + Enter => Modify config | Enter => Confirm " +
+                  "current config\n" +
+                  "('\033[95ma\033[0m' to \033[95mdisplay all configs\033[0m" +
+                  " | '\033[96mh\033[0m' for \033[96mhelp\033[0m" + 
+                  " | '\033[93mc\033[0m' to \033[93mcancel\033[0m)\n\n>>> ")
+        
+        o = o.strip().lower()
 
         if o:
             __clean()
             match o:
                 case "1":
                     mk_file = __ask_menu(conf_mkfile, mk_file)
+                    __clean()
+                    print("\033[95mAfter change:\033[0m\n")
                     conf_mkfile()
+                    print("\n")
                 case "2":
                     cov_val_fl = __ask_menu(conf_cvf, cov_val_fl)
+                    __clean()
+                    print("\033[95mAfter change:\033[0m\n")
                     conf_cvf()
                 case "3":
                     h_cod_rem = __ask_menu(conf_hcr, h_cod_rem)
+                    __clean()
+                    print("\033[95mAfter change:\033[0m\n")
                     conf_hcr()
                 case "4":
                     while True:
@@ -197,7 +206,8 @@ def __interactive_config(file_path):
                                 delimiter = print("\nEnter new separator >>> ", 
                                             end="")
                                 break
-                    print("\n\033[95mAfter change:\033[0m\n")
+                    __clean()
+                    print("\033[95mAfter change:\033[0m\n")
                     conf_del()
                 case "5":
                     while True:
@@ -215,12 +225,20 @@ def __interactive_config(file_path):
                         elif odp == "f":
                             col_to_rem = to_remove ; break
                         elif odp == "u":
-                            input("You have to select '.txt' file which has names " +
-                                  "of all columns which you want to remove in separate " +
-                                  "lines\n\nPress Enter to find a File >>> ")
                             Tk().withdraw()
                             file = filedialog.askopenfilename(
+                                title="Choose file with columns to remove",
                                 filetypes=[("Text file", "*.txt")])
+                            
+                            if not file:
+                                print("\033[91mNo file was choosen !!!\033[0m")
+                                ans = input(r"Do you want to try again? [y\N]" +
+                                            "\n>>> ").strip().lower()
+                                if ans == "y":
+                                    __clean()
+                                    continue
+                                else:
+                                    break
                             try:
                                 f = open(file)
                                 col_to_rem = [a.strip() for a in f.readlines()]
@@ -239,11 +257,30 @@ def __interactive_config(file_path):
                                     col_to_rem = tmp
                                     break
                             break
-                    print("\n\033[95mAfter change:\033[0m\n")
+                    __clean()
+                    print("\033[95mAfter change:\033[0m\n")
                     conf_ctr()                           
-                case "h":
-                    print("\n\n\033[93mCurrent config after changes\033[0m\n\n")
+                case "a":
+                    __clean()
+                    print("\033[93mCurrent config after changes\033[0m\n\n")
                     h()
+                case "h":
+                    __clean()
+                    print(__interactive_config.__doc__[125:], end = "")
+                    input("\n\nPress Enter to continue >>> ")
+                    __clean()
+                    print("\033[93mCurrent config after changes\033[0m\n\n")
+                    h()
+                case "c":
+                    __clean()
+                    a = input("Do you want to cancel process and go to main " +
+                              "menu? [\033[91my\033[0m\\\033[92mN\033[0m]" + 
+                              "\n>>> ").strip().lower()
+                    if a == "y":
+                        return None
+                    else:
+                        __clean()
+                        h()
         else:
             confimed = True
 
@@ -358,33 +395,32 @@ def option1(v : bool):
     """
     Tk().withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
+    dir_path = sign.join(file_path.split(sign)[0:-1])
 
     __clean()
 
-    mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
-        __interactive_config(file_path if v else '')
+    ans = __interactive_config(file_path if v else '')
+    if ans == None: return
+
+    mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
 
     __clean()
 
-    print("\033[91mWARNING\033[0m")
-    print("Due to some internal Python interpreter problem if you choose "+
-          "to change \ndirectory (\033[93mn\033[0m) program MIGHT crash !!!\n" +
-          "Take this into account in your decision")
-
-    ans = input("\n\033[93mDo you want to store file in the same place as the " +
-                "oryginal file? \033[0m" + r"[y\n]" + " >>> ")
+    print("\033[92mConfigutraiton saved !\033[0m\n")
+    ans = input("\033[93mDo you want to change place where files will be " + 
+                "saved?\033[0m\nPress 'y' + Enter to change | Enter to " + 
+                "continue\n>>> ").strip().lower()
     
-    ans = ans.strip().lower()
-    path = sign.join(file_path.split(sign)[0:-1])
     if ans == 'n':
-        path = filedialog.askdirectory(mustexist=True, initialdir=path)
+        Tk().withdraw()
+        dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
 
     __clean()
 
     print("Processing file ...\n")
 
-    file = open(file_path)
-    csvreader = list(csv.reader(file_path, delimiter=delim))
+    csv_file = open(file_path)
+    csvreader = list(csv.reader(csv_file, delimiter=delim))
 
     race_data = processed_file = None
 
@@ -404,7 +440,7 @@ def option1(v : bool):
             file_name = "data_information_" +\
                         f"{race_data['log_date'].replace('-','_')}_" +\
                         f"{race_data['log_time'].replace(':','_')}"
-            new_file = f"{path}{sign}{file_name}.txt"
+            new_file = f"{dir_path}{sign}{file_name}.txt"
             
             if v:
                 __display_path(new_file, 
@@ -423,7 +459,7 @@ def option1(v : bool):
         save_data_csv_coma_format(processed_file,
                                   race_data['log_date'],
                                   race_data['log_time'], 
-                                  path)
+                                  dir_path)
     except Exception as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
         input("\nPress Enter to go back to main menu >>> ")
@@ -437,8 +473,6 @@ def option2(v : bool):
     """
     This option is ment to process multiple files easier than option 1.
 
-    1. You choose in which mode you would like to operate
-
     - `i` - you go file by file (like option 1 on loop). This is handy if you
     want different configuration for different files or want to easily test
     impact of your configuration on the file
@@ -448,31 +482,69 @@ def option2(v : bool):
     
     __clean()
     mode = ''
+
+    def h():
+        print(
+            "Choose if you want to run interactive mode (option 1 on " +
+            "repeat) or you want\nto make one settings for all files" +
+            " ('\033[96mh\033[0m' for \033[96mhelp" +
+            "\033[0m | '\033[93mc\033[0m' to \033[93mcancel\033[0m)" +
+
+            "\n\n\033[95mi - interactive mode " +
+            "(set params to all files individually)\033[0m\n" +
+            
+            "\033[96mg - generall (set once, run for all)\033[0m"
+        )
+
+    h()
+
     while True:
-        odp = input("Choose if you want to run interactive mode (option 1 on " +
-                    "repeat) \nor you want to make one settings for all files" +
-                    "\n\n\033[95mi - interactive mode (set params to all files" +
-                    " individually)\033[0m\n\033[96mg - generall (set once, run" +
-                    "for all)\033[0m\n\n>>> ").strip().lower()
+        odp = input("\n>>> ").strip().lower()
         
         if odp == "i":
             mode = "i" ; break
         elif odp == "g":
             mode = "g" ; break
+        elif odp == "h":
+            __clean()
+            print(option2.__doc__, end = '')
+            input("\nPress Enter to continue >>> ")
+            __clean()
+            h()
+        elif odp == "c":
+            __clean()
+            a = input("Do you want to cancel process and go to main " +
+                        "menu? [\033[91my\033[0m\\\033[92mN\033[0m]" + 
+                        "\n>>> ").strip().lower()
+            if a == "y":
+                return None
+            else:
+                __clean()
+                h()
+        else:
+            print("\n\033[91mInvalid option !!!\033[0m")
 
     __clean()
 
     match mode:
         case "i":
             while True:
+                __clean()
                 option1(v)
                 __clean()
                 a = input(
-                    "Continue (press Enter) or finish (write 'c' and Enter\n\n>>> ")
+                    "File was processed. Write 'c' + Enter to cancel, and go " +
+                    "back to main menu\nor press Enter to continue \n\n>>> "
+                    )
                 if a.strip().lower() == "c": break
         case "g":
-            mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
-                __interactive_config("")
+
+            ans = __interactive_config("")
+
+            if ans == None: return
+
+            mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
+                
             Tk().withdraw()
             files = filedialog.askopenfilenames(filetypes=[("CSV","*.csv")])
 
@@ -533,7 +605,7 @@ def option3(v : bool):
 
         if not directory:
             print("\033[91mNo directory was choosen !!!\033[0m")
-            ans = input("Press Enter to return to menu or write 'r' and press " +
+            ans = input("Press Enter to return to menu or write 'r' and press "+
                         "Enter to try again >>> ").strip().lower()
             if ans == "r":
                 folder_choosen = False
@@ -567,8 +639,12 @@ def option3(v : bool):
 
     __clean()
 
-    mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = \
-        __interactive_config(directory_choosen)
+    ans = __interactive_config(directory_choosen)
+
+    if ans == None: return
+
+    mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
+        
 
     __clean()
 
@@ -670,8 +746,8 @@ def menu():
                 case "h":
                     __clean()
                     hint()
-                   
-    print("Exiting app ...")
+
+    __clean()
     exit()
 
 
