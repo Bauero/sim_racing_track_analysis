@@ -338,7 +338,7 @@ def __fill_missing_lap_data(file_object,
     current_lap = 1
 
     file_object[0].insert(TIME+1,"Time_on_lap")
-    file_object[0].insert(DISTANCE+1,"Distance_on_lap")
+    file_object[0].insert(DISTANCE+2,"Distance_on_lap")
     full_laps = list(lap_info.keys())
 
     if verbose:
@@ -380,7 +380,7 @@ def __fill_missing_lap_data(file_object,
             dol = f"{dol}"
 
         file_object[row].insert(TIME+1,tol)
-        file_object[row].insert(DISTANCE+1,dol)
+        file_object[row].insert(DISTANCE+2,dol)
 
     if verbose:
         print("\n\033[92mFilling out rows completed\033[0m")
