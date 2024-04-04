@@ -303,6 +303,8 @@ def __fill_missing_lap_data(file_object,
     TIME = file_object[0].index('Time')
     DISTANCE = file_object[0].index('Distance')
 
+    # Adding missing lap numbers
+
     lap = "1"
     last_time = lap_info[lap]['end']
     if verbose:
@@ -332,6 +334,8 @@ def __fill_missing_lap_data(file_object,
 
     if verbose:
         print()
+
+    # Adding additional columsn - Time_on_lap and Distance_on_lap
 
     distance_offset = 0.0
     time_offset = 0.0
@@ -384,6 +388,8 @@ def __fill_missing_lap_data(file_object,
 
     if verbose:
         print("\n\033[92mFilling out rows completed\033[0m")
+
+    # Fill out missing values
 
     for row in range(1,len(file_object)):
         if values_in_float:
