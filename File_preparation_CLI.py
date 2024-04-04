@@ -331,18 +331,38 @@ def __multiple_file_processing(data_to_process,
                     f"{file_name}"
             file = open(full_csv_file_path)
             csvreader = list(csv.reader(file, delimiter=delim))
-            race_data, processed_file = prepare_data(csvreader, 
-                                                     v, 
-                                                     cov_val_fl, 
-                                                     h_cod_rem, 
-                                                     col_to_rem)
+            values = prepare_data(csvreader, 
+                                    v, 
+                                    cov_val_fl, 
+                                    h_cod_rem, 
+                                    col_to_rem)
+            race_data, data_all_laps, data_for_best_lap, best_time_section, \
+                processed_file = values
             
+            time, date = race_data["log_time"], race_data["log_date"]
+
+            time = time.replace("/","-").replace("\\","-").replace(":","-")
+            date = date.replace(".","-").replace("/","-")
+
+            # save_dir =  f"{save_dir}{sign}data_information_{date}_{time}"
+            save_dir =  f"{save_dir}" + \
+                        f"{sign if not save_dir.endswith(sign) else ''}" + \
+                        f"{file_name.split('.')[0]}"
+
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+
+            save_laps_section_all_laps(save_dir, data_all_laps, 
+                                        f"{date}_{time}_all_laps")
+            save_laps_section_all_laps(save_dir, data_for_best_lap, 
+                                        f"{date}_{time}_best_lap")
+            save_data_best_sections(save_dir, best_time_section, 
+                                        f"{date}_{time}_best_section")
+
             if mk_file:
-                txt_file_name = "data_information_" +\
-                            f"{race_data['log_date'].replace('-','_')}_" +\
-                            f"{race_data['log_time'].replace(':','_')}.txt"
-                new_file = f"{directory_choosen}" + \
-                    f"{'' if directory_choosen.endswith(sign) else sign}" +\
+                txt_file_name = f"{date}_{time}_file_summary.txt"
+                new_file = f"{save_dir}" + \
+                    f"{'' if save_dir.endswith(sign) else sign}" +\
                     f"{txt_file_name}"
                 
                 if v:
@@ -359,15 +379,13 @@ def __multiple_file_processing(data_to_process,
                 txt_file.write(ts)
                 
                 txt_file.close()
-            
+
             if v:
                 print("-" * 80 + "\n")
                 __display_path(full_csv_file_path, 
                             "Writing information to .csv file under location")
 
-            save_data_csv_coma_format(processed_file,
-                                      race_data['log_date'], 
-                                      race_data['log_time'], save_dir)
+            save_data_csv_coma_format(processed_file, date, time, save_dir)
             
             if v:
                 print("\033[92mWriting information to file Sucessful\033[0m\n")
@@ -425,21 +443,38 @@ def option1(v : bool):
     race_data = processed_file = None
 
     try:
-        race_data, processed_file = prepare_data(csvreader, 
-                                                 v, 
-                                                 cov_val_fl, 
-                                                 h_cod_rem, 
-                                                 col_to_rem)
+        values = prepare_data(csvreader, 
+                              v, 
+                              cov_val_fl, 
+                              h_cod_rem, 
+                              col_to_rem)
+        race_data, data_all_laps, data_for_best_lap, best_time_section, \
+            processed_file = values
     except KeyError as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
         input("\nPress Enter to go back to main menu >>> ")
         return
     
     try:
+        time, date = race_data["log_time"], race_data["log_date"]
+
+        time = time.replace("/","-").replace("\\","-").replace(":","-")
+        date = date.replace(".","-").replace("/","-")
+
+        dir_path = f"{dir_path}{sign}data_information_{date}_{time}"
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+
+        save_laps_section_all_laps(dir_path, data_all_laps, 
+                                   f"{date}_{time}_all_laps")
+        save_laps_section_all_laps(dir_path, data_for_best_lap, 
+                                   f"{date}_{time}_best_lap")
+        save_data_best_sections(dir_path, best_time_section, 
+                                f"{date}_{time}_best_section")
+        
+
         if mk_file:
-            file_name = "data_information_" +\
-                        f"{race_data['log_date'].replace('-','_')}_" +\
-                        f"{race_data['log_time'].replace(':','_')}"
+            file_name = f"{date}_{time}_data_information"
             new_file = f"{dir_path}{sign}{file_name}.txt"
             
             if v:
@@ -453,13 +488,11 @@ def option1(v : bool):
                 print("\033[92mWriting information to file Sucessful\033[0m\n")
             
             new_file.write(ts)
-            
+
             new_file.close()
 
-        save_data_csv_coma_format(processed_file,
-                                  race_data['log_date'],
-                                  race_data['log_time'], 
-                                  dir_path)
+        save_data_csv_coma_format(processed_file, date, time, dir_path)
+
     except Exception as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
         input("\nPress Enter to go back to main menu >>> ")
