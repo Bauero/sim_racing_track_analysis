@@ -323,21 +323,12 @@ def __add_data_for_each_lap(file_object,
         if not values_in_float:
             tol = f"{tol}"
             dol = f"{dol}"
-            
-        file_object[row].insert(TIME_ON_LAP,tol)
-        file_object[row].insert(DISTANCE_ON_LAP,dol)
 
         file_object[row].insert(TIME_ON_LAP,tol)
         file_object[row].insert(DISTANCE_ON_LAP,dol)
 
     if verbose:
         print("\n\033[92mFilling out rows completed\033[0m")
-
-    for row in range(1,len(file_object)):
-        if values_in_float:
-            file_object[row] = [x if x != '' else 0.0 for x in file_object[row]]
-        else:
-            file_object[row] = [x if x != '' else "0" for x in file_object[row]]
 
     return file_object
 
