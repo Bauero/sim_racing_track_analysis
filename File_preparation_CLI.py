@@ -287,7 +287,7 @@ def __interactive_config(file_path):
     return mk_file, cov_val_fl, h_cod_rem, delimiter, col_to_rem
 
 
-def __multiple_file_processing(data_to_process,
+def multiple_file_processing(data_to_process,
                                mk_file : bool,
                                cov_val_fl : bool,
                                h_cod_rem : bool, 
@@ -318,8 +318,6 @@ def __multiple_file_processing(data_to_process,
     - `directory_choosen` (str) - Directory path under which files will be saved
     """
 
-    __clean()
-
     for n, elem in enumerate(data_to_process):
         file_name, file_path, size = elem.values()
         save_dir = directory_choosen if directory_choosen else file_path
@@ -331,18 +329,38 @@ def __multiple_file_processing(data_to_process,
                     f"{file_name}"
             file = open(full_csv_file_path)
             csvreader = list(csv.reader(file, delimiter=delim))
-            race_data, processed_file = prepare_data(csvreader, 
-                                                     v, 
-                                                     cov_val_fl, 
-                                                     h_cod_rem, 
-                                                     col_to_rem)
+            values = prepare_data(csvreader, 
+                                    v, 
+                                    cov_val_fl, 
+                                    h_cod_rem, 
+                                    col_to_rem)
+            race_data, data_all_laps, data_for_best_lap, best_time_section, \
+                processed_file = values
             
+            time, date = race_data["log_time"], race_data["log_date"]
+
+            time = time.replace("/","-").replace("\\","-").replace(":","-")
+            date = date.replace(".","-").replace("/","-")
+
+            # save_dir =  f"{save_dir}{sign}data_information_{date}_{time}"
+            save_dir =  f"{save_dir}" + \
+                        f"{sign if not save_dir.endswith(sign) else ''}" + \
+                        f"{file_name.split('.')[0]}"
+
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+
+            save_laps_section_all_laps(save_dir, data_all_laps, 
+                                        f"{date}_{time}_all_laps")
+            save_laps_section_all_laps(save_dir, data_for_best_lap, 
+                                        f"{date}_{time}_best_lap")
+            save_data_best_sections(save_dir, best_time_section, 
+                                        f"{date}_{time}_best_section")
+
             if mk_file:
-                txt_file_name = "data_information_" +\
-                            f"{race_data['log_date'].replace('-','_')}_" +\
-                            f"{race_data['log_time'].replace(':','_')}.txt"
-                new_file = f"{directory_choosen}" + \
-                    f"{'' if directory_choosen.endswith(sign) else sign}" +\
+                txt_file_name = f"{date}_{time}_file_summary.txt"
+                new_file = f"{save_dir}" + \
+                    f"{'' if save_dir.endswith(sign) else sign}" +\
                     f"{txt_file_name}"
                 
                 if v:
@@ -359,15 +377,13 @@ def __multiple_file_processing(data_to_process,
                 txt_file.write(ts)
                 
                 txt_file.close()
-            
+
             if v:
                 print("-" * 80 + "\n")
                 __display_path(full_csv_file_path, 
                             "Writing information to .csv file under location")
 
-            save_data_csv_coma_format(processed_file,
-                                      race_data['log_date'], 
-                                      race_data['log_time'], save_dir)
+            save_data_csv_coma_format(processed_file, date, time, save_dir)
             
             if v:
                 print("\033[92mWriting information to file Sucessful\033[0m\n")
@@ -411,7 +427,7 @@ def option1(v : bool):
                 "saved?\033[0m\nPress 'y' + Enter to change | Enter to " + 
                 "continue\n>>> ").strip().lower()
     
-    if ans == 'n':
+    if ans == 'y':
         Tk().withdraw()
         dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
 
@@ -425,21 +441,38 @@ def option1(v : bool):
     race_data = processed_file = None
 
     try:
-        race_data, processed_file = prepare_data(csvreader, 
-                                                 v, 
-                                                 cov_val_fl, 
-                                                 h_cod_rem, 
-                                                 col_to_rem)
+        values = prepare_data(csvreader, 
+                              v, 
+                              cov_val_fl, 
+                              h_cod_rem, 
+                              col_to_rem)
+        race_data, data_all_laps, data_for_best_lap, best_time_section, \
+            processed_file = values
     except KeyError as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
         input("\nPress Enter to go back to main menu >>> ")
         return
     
     try:
+        time, date = race_data["log_time"], race_data["log_date"]
+
+        time = time.replace("/","-").replace("\\","-").replace(":","-")
+        date = date.replace(".","-").replace("/","-")
+
+        dir_path = f"{dir_path}{sign}data_information_{date}_{time}"
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+
+        save_laps_section_all_laps(dir_path, data_all_laps, 
+                                   f"{date}_{time}_all_laps")
+        save_laps_section_all_laps(dir_path, data_for_best_lap, 
+                                   f"{date}_{time}_best_lap")
+        save_data_best_sections(dir_path, best_time_section, 
+                                f"{date}_{time}_best_section")
+        
+
         if mk_file:
-            file_name = "data_information_" +\
-                        f"{race_data['log_date'].replace('-','_')}_" +\
-                        f"{race_data['log_time'].replace(':','_')}"
+            file_name = f"{date}_{time}_data_information"
             new_file = f"{dir_path}{sign}{file_name}.txt"
             
             if v:
@@ -453,13 +486,11 @@ def option1(v : bool):
                 print("\033[92mWriting information to file Sucessful\033[0m\n")
             
             new_file.write(ts)
-            
+
             new_file.close()
 
-        save_data_csv_coma_format(processed_file,
-                                  race_data['log_date'],
-                                  race_data['log_time'], 
-                                  dir_path)
+        save_data_csv_coma_format(processed_file, date, time, dir_path)
+
     except Exception as e:
         print(f"\033[91mOperation failed: {e}\033[0m")
         input("\nPress Enter to go back to main menu >>> ")
@@ -563,16 +594,18 @@ def option2(v : bool):
 
                 sum_of_sizes += size
 
-            __multiple_file_processing(data_to_process,
-                                       mk_file,
-                                       cov_val_fl, 
-                                       h_cod_rem, 
-                                       col_to_rem, 
-                                       processed_size, 
-                                       sum_of_sizes, 
-                                       v,
-                                       delim,
-                                       file_path)
+            __clean()
+
+            multiple_file_processing(data_to_process,
+                                     mk_file,
+                                     cov_val_fl, 
+                                     h_cod_rem, 
+                                     col_to_rem, 
+                                     processed_size, 
+                                     sum_of_sizes, 
+                                     v,
+                                     delim,
+                                     file_path)
             
             print("#" * 80 + "\n")
             input("\033[92mFile processing finished\033[0m\n\nPress Enter" +
@@ -664,16 +697,18 @@ def option3(v : bool):
     directory_choosen = directory_choosen + sign + "processed_data"
     os.mkdir(directory_choosen)
 
-    __multiple_file_processing(data_to_process,
-                               mk_file,
-                               cov_val_fl,
-                               h_cod_rem, 
-                               col_to_rem,
-                               processed_size,
-                               sum_of_sizes,
-                               v,
-                               delim,
-                               directory_choosen)
+    __clean()
+
+    multiple_file_processing(data_to_process,
+                             mk_file,
+                             cov_val_fl,
+                             h_cod_rem, 
+                             col_to_rem,
+                             processed_size,
+                             sum_of_sizes,
+                             v,
+                             delim,
+                             directory_choosen)
     
     print("#" * 80 + "\n")
     input("\n\033[92mFile processing finished\033[0m\n\nPress " +
@@ -732,6 +767,7 @@ def menu():
                     __clean()
                 case "3":
                     option3(verbose)
+                    tmp = True
                     __clean()
                 case "4":
                     verbose = not verbose
@@ -741,11 +777,12 @@ def menu():
                     else:
                         print("\n\033[91mNow command won't executed with " +
                               "description\033[0m")
+                    tmp = True
                 case "5":
                     break
                 case "h":
                     __clean()
-                    hint()
+                    tmp = True
 
     __clean()
     exit()

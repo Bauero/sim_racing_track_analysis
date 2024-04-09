@@ -5,6 +5,8 @@ it can be run by external program
 """
 
 import os
+import csv
+from math import inf
 
 sign = '\\' if os.name == 'nt' else '/'
 to_remove = ['SUS_TRAVEL_LF',
@@ -39,103 +41,35 @@ to_remove = ['SUS_TRAVEL_LF',
             'BUMPSTOP_FORCE_RF',
             'BUMPSTOP_FORCE_LR',
             'BUMPSTOP_FORCE_RR']
+sections = {
+    "1"	: {"name" : "Str 1",    "start" :   0,      "end" :	670},
+    "2"	: {"name" : "Turn 1",   "start" :	670,    "end" :	900},
+    "3"	: {"name" : "Turn 2",   "start" :	900,    "end" :	990},
+    "4"	: {"name" : "Str 2-3",  "start" :	990,    "end" :	1030},
+    "5"	: {"name" : "Turn 3",   "start" :	1030,   "end" :	1330},
+    "6"	: {"name" : "Str 3-4",  "start" :	1330,   "end" :	1580},
+    "7"	: {"name" : "Turn 4",   "start" :	1580,   "end" :	1880},
+    "8"	: {"name" : "Str 4-5",  "start" :	1880,   "end" :	2000},
+    "9"	: {"name" : "Turn 5",   "start" :	2000,   "end" :	2200},
+    "10": {"name" : "Str 5-6",  "start" :	2200,   "end" :	2430},
+    "11": {"name" : "Turn 6",   "start" :	2430,   "end" :	2580},
+    "12": {"name" : "Str 6-7",  "start" :	2580,   "end" :	2770},
+    "13": {"name" : "Turn 7",   "start" :	2770,   "end" :	2980},
+    "14": {"name" : "Str 7-8",  "start" :	2980,   "end" :	3310},
+    "15": {"name" : "Turn 8",   "start" :	3310,   "end" :	3520},
+    "16": {"name" : "Str 8-9",  "start" :	3520,   "end" :	3530},
+    "17": {"name" : "Turn 9",   "start" :	3530,   "end" :	3620},
+    "18": {"name" : "Turn 10",  "start" :	3620,   "end" :	3840},
+    "19": {"name" : "Str 10-11","start" :   3840,   "end" :	3880},	
+    "20": {"name" : "Turn 11",  "start" :	3880,   "end" :	4020},
+    "21": {"name" : "Turn 12",  "start" :	4020,   "end" :	4120},
+    "22": {"name" : "Turn 13",  "start" :	4120,   "end" :	4200},
+    "23": {"name" : "Turn 14",  "start" :	4200,   "end" :	4400},
+    "24": {"name" : "Str 14-0", "start" :	4400,   "end" :	inf}
+}
 
 
-def display_track_summary(track_summary, laps_start_end, color : bool = False):
-    """
-    This is helper function - it is used to prepare, and return track data
-    in readable form (to be stored in file or displayed in console)
-    """
-
-    ts = ''
-
-    # line separator for clear display of data
-    if color:
-        ts += "General informaiton about data\n\n"
-    else:
-        ts += "General informaiton about data\n\n"
-
-    # display all stats except laps data (displayed separately below)
-    for stats in track_summary:
-        if stats == 'beacon_makers' or stats == 'laps_start_end':
-            continue
-        if color:
-            ts += f"\033[95m{stats.capitalize():20}\033[0m : " +\
-                  f"{track_summary[stats]}\n"
-        else:
-            ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
-
-    # line separator for clear display of data
-    if color:
-        ts += "\nLap times\n\n"
-    else:
-        ts += "\nLap times\n\n"
-
-    # display each lap times
-    for i in range(len(laps_start_end)):
-        start, end = laps_start_end[str(i + 1)].values()
-        if color:
-            ts += f'\033[94mLap {(i + 1)}\033[0m : \033[92m{start:08.3f}' +\
-            f'\033[0m - \033[96m{end:08.3f}\033[0m   =   ' +\
-            f'\033[92m{(end - start):.3f}\033[0ms\n'
-        else:
-            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
-                  f'{(end - start):.3f}s\n'
-    
-    ts.strip()
-
-    return ts
-
-
-def extract_general_data(file_object, verbose : bool = False) -> dict:
-    """
-    This funciton is responsible for removal of first rows in data which are
-    responsible for storage of additional informaiton such as car model,
-    track, name, distance. Those data are removed from the initial table but 
-    can later be accessed via external variable
-    """
-
-    # Read all information which are stored in the beginning of the file
-    track_summary = {
-    'format' : file_object[0][1],
-    'venue' : file_object[1][1],
-    'vehicle' : file_object[2][1],
-    'driver' : file_object[3][1],
-    'device' : file_object[4][1],
-    'comment' : file_object[5][1],
-    'log_date' : file_object[6][1],
-    'log_time' : file_object[7][1],
-    'start_time' : file_object[7][5],
-    'sample_rate' : file_object[8][1],
-    'end_time' : file_object[8][5],
-    'duration' : file_object[9][1],
-    'range' : file_object[10][1],
-    'beacon_makers' : ...
-    }
-
-    # Add beacon makers in readable form (list of floats)
-    beacon_makers = file_object[11][1].strip().split(" ")
-    beacon_makers = [float(i) for i in beacon_makers]
-    track_summary['beacon_makers'] = beacon_makers
-
-    # Prepare dict of dicts which contains start end end of each lap
-    # Lap 1 : 0.000 - 107.154
-    # Lap 2 : 107.154 - 446.093
-    # etc.
-    laps_start_end = {}
-    tmp_start = float(track_summary['start_time'])
-    for i in range(len(beacon_makers)):
-        laps_start_end[str(i + 1)] = {"start" : tmp_start, 
-                                      "end" : beacon_makers[i]}
-        tmp_start = beacon_makers[i]
-    track_summary['laps_start_end'] = laps_start_end
-
-    # Display informaiton in the console if 'verbose' param set to 'True'
-
-    if verbose:
-        print(display_track_summary(track_summary, laps_start_end, True))
-        
-    return track_summary
+#############################  INTERNAL FUNCITONS  #############################
 
 
 def __remove_unnecessary_rows(file_object, hard_coded : bool = True, 
@@ -285,24 +219,18 @@ def __even_out_comma_notation_str(file_object):
     return file_object
 
 
-def __fill_missing_lap_data(file_object,
-                            lap_info : dict[dict], 
-                            values_in_float : bool,
-                            verbose : bool = False):
+def __add_missing_laps_numbers(file_object,
+                       lap_info,
+                       verbose):
     """
-    This function fills out missing data. Right now, this function:
+    This function is responible for adding appriopriate number of lap into 
+    'LAP_BEACON' column, based on 'BEACONS_MAREKRS'
+    """
 
-    - fills out missing laps numbers
-    - adds column `Time_on_lap` which contains information about time, as if it
-    was reseted wherever driver passes start line
-    - adds column `Distance_on_lap` - resets distance on every start line
-    """
-    
-    import math
+
     LAP_BEACON = file_object[0].index('LAP_BEACON')
     TIME = file_object[0].index('Time')
-    DISTANCE = file_object[0].index('Distance')
-
+    
     lap = "1"
     last_time = lap_info[lap]['end']
     if verbose:
@@ -321,10 +249,7 @@ def __fill_missing_lap_data(file_object,
             file_object[row][LAP_BEACON] = lap
         else:
             lap = str(int(lap) + 1)
-            try:
-                last_time = lap_info[lap]['end']
-            except:
-                last_time = math.inf
+            last_time = lap_info[lap]['end']
             file_object[row][LAP_BEACON] = lap
             if verbose:
                 print("\033[94mFilling out information about lap " + 
@@ -333,12 +258,31 @@ def __fill_missing_lap_data(file_object,
     if verbose:
         print()
 
+    return file_object, lap
+
+
+def __add_data_for_each_lap(file_object,
+                            lap_info,
+                            values_in_float,
+                            verbose):
+    """
+    This funciton is responible for adding 2 important columns - 'Time_on_lap'
+    and 'Distance_on_lap'. 
+    """
+
+
+    LAP_BEACON = file_object[0].index('LAP_BEACON')
+    TIME = file_object[0].index('Time')
+    TIME_ON_LAP = TIME + 1
+    DISTANCE = file_object[0].index('Distance')
+    DISTANCE_ON_LAP = DISTANCE + 1 + (TIME < DISTANCE)
+
     distance_offset = 0.0
     time_offset = 0.0
     current_lap = 1
 
-    file_object[0].insert(TIME+1,"Time_on_lap")
-    file_object[0].insert(DISTANCE+2,"Distance_on_lap")
+    file_object[0].insert(TIME_ON_LAP,"Time_on_lap")
+    file_object[0].insert(DISTANCE_ON_LAP,"Distance_on_lap")
     full_laps = list(lap_info.keys())
 
     if verbose:
@@ -378,9 +322,9 @@ def __fill_missing_lap_data(file_object,
         if not values_in_float:
             tol = f"{tol}"
             dol = f"{dol}"
-
-        file_object[row].insert(TIME+1,tol)
-        file_object[row].insert(DISTANCE+2,dol)
+            
+        file_object[row].insert(TIME_ON_LAP,tol)
+        file_object[row].insert(DISTANCE_ON_LAP,dol)
 
     if verbose:
         print("\n\033[92mFilling out rows completed\033[0m")
@@ -392,6 +336,282 @@ def __fill_missing_lap_data(file_object,
             file_object[row] = [x if x != '' else "0" for x in file_object[row]]
 
     return file_object
+
+
+def __add_sections_and_analyze(file_object,
+                               lap_info,
+                               values_in_float,
+                               verbose):
+    """
+    This funcition is responible for adding section columns after 'LAP_BEACON' 
+    and measuring other statistics, like min, max and average speed on each
+    section, and for best section accross all laps. Additionally, function
+    returns also section data, for best lap
+    """
+
+
+    LAP_BEACON = file_object[0].index('LAP_BEACON')
+    SECTION = LAP_BEACON + 1
+    TIME = file_object[0].index('Time')
+    DISTANCE_ON_LAP = file_object[0].index('Distance_on_lap')
+
+    current_section = "1"
+    current_lap = int(float(file_object[1][LAP_BEACON]))
+    section_end = sections[current_section]["end"]
+    file_object[0].insert(SECTION,"Section")
+
+    data_all_laps = { "1" : {  "1" : {}  } }
+
+    best_time_section = {k : {"best_time" : inf} for k in sections.keys()}
+    time_per_lap = {
+        k : lap_info[k]["end"] - lap_info[k]["start"] for k in lap_info.keys()
+    }
+
+    best_time_lap = sorted(list(time_per_lap.items()), key = lambda x : x[1])[0]
+
+    speeds_in_section = []
+    sp_col = file_object[0].index("SPEED")-1
+    start_time_section = 0
+
+    def __update_speeds(start_time_section, 
+                        speeds_in_section,
+                        data_all_laps,
+                        current_lap,
+                        current_section
+                        ):
+        
+        section_max = max(speeds_in_section)
+        section_min = min(speeds_in_section)
+        section_avg = round(sum(speeds_in_section) / len(speeds_in_section),
+                                2)
+
+        scl = str(current_lap)
+
+        data_all_laps[scl][current_section]["max"] = section_max
+        data_all_laps[scl][current_section]["min"] = section_min
+        data_all_laps[scl][current_section]["avg"] = section_avg
+
+        speeds_in_section = []
+
+        time_in_row = round((float(file_object[row][TIME]) + \
+                        float(file_object[row-1][TIME])) / 2, 4)
+        time_diff = round(time_in_row - start_time_section, 4)
+        
+        if time_diff < best_time_section[current_section]["best_time"]:
+            best_time_section[current_section]["best_time"] = time_diff
+            best_time_section[current_section]["max"] = section_max
+            best_time_section[current_section]["min"] = section_min
+            best_time_section[current_section]["avg"] = section_avg
+            start_time_section = time_in_row
+
+    if verbose:
+        print("\033[94mFilling out sections on laps " + 
+                    "\033[0m\033[93m1\033[0m")
+
+    for row in range(1, len(file_object)):
+        dist_on_lap = float(file_object[row][DISTANCE_ON_LAP])
+        speed = float(file_object[row][sp_col])
+        lap_in_row = file_object[row][LAP_BEACON]
+        
+        # For every new lap
+
+        if int(lap_in_row) > current_lap:
+
+            __update_speeds(start_time_section, 
+                            speeds_in_section,
+                            data_all_laps,
+                            current_lap,
+                            current_section
+                            )
+
+            cls = file_object[row][LAP_BEACON]
+            current_lap = int(cls)
+
+            current_section = "1"
+            section_end = sections[current_section]["end"]
+
+            data_all_laps[str(current_lap)] = {
+                "1" : {}
+            }
+
+            if verbose:
+                print("\033[94mFilling out sections for lap " + 
+                        "\033[0m\033[93m" + f"{current_lap}" + "\033[0m")
+
+        # For every new section
+
+        if dist_on_lap > section_end:
+
+            __update_speeds(start_time_section, 
+                            speeds_in_section,
+                            data_all_laps,
+                            current_lap,
+                            current_section
+                            )
+
+            current_section = str(int(current_section) + 1)
+            section_end = sections[current_section]["end"]
+
+            data_all_laps[str(current_lap)][current_section] = {}
+
+        speeds_in_section.append(speed)
+        file_object[row].insert(SECTION,
+                                current_section if not values_in_float else \
+                                int(current_section))
+    else:
+        __update_speeds(start_time_section, 
+                        speeds_in_section,
+                        data_all_laps,
+                        current_lap,
+                        current_section
+                        )
+
+    data_for_best_lap = {best_time_lap[0] : data_all_laps[best_time_lap[0]]}
+
+    if verbose:
+        print("\n\033[92mFilling out rows completed\033[0m")
+
+    return file_object, data_all_laps, data_for_best_lap, best_time_section
+
+
+def __fill_missing_data(file_object,
+                            lap_info : dict[dict], 
+                            values_in_float : bool,
+                            verbose : bool = False):
+    """
+    This function fills out missing data. It should contain other functions
+    which directly puts additioal columns, or modify exising ones (except 
+    removing them - this is done ealier)
+    """
+
+    # Adding missing lap numbers
+
+    file_object = __add_missing_laps_numbers(file_object, 
+                                             lap_info, 
+                                             verbose)
+
+    # Adding additional columsn - Time_on_lap and Distance_on_lap
+
+    file_object = __add_data_for_each_lap(file_object, 
+                                          lap_info, 
+                                          values_in_float,
+                                          verbose)
+
+    # Adding column to indicate which section is driver in
+
+    values = __add_sections_and_analyze(file_object,
+                                        lap_info,
+                                        values_in_float,
+                                        verbose)
+
+    file_object, data_all_laps, data_for_best_lap, best_time_section = values
+
+
+    return file_object, data_all_laps, data_for_best_lap, best_time_section
+
+
+##############################  PUBLIC FUNCITONS  ##############################
+
+
+def display_track_summary(track_summary, laps_start_end, color : bool = False):
+    """
+    This is helper function - it is used to prepare, and return track data
+    in readable form (to be stored in file or displayed in console)
+    """
+
+    ts = ''
+
+    # line separator for clear display of data
+    if color:
+        ts += "General informaiton about data\n\n"
+    else:
+        ts += "General informaiton about data\n\n"
+
+    # display all stats except laps data (displayed separately below)
+    for stats in track_summary:
+        if stats == 'beacon_makers' or stats == 'laps_start_end':
+            continue
+        if color:
+            ts += f"\033[95m{stats.capitalize():20}\033[0m : " +\
+                  f"{track_summary[stats]}\n"
+        else:
+            ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
+
+    # line separator for clear display of data
+    if color:
+        ts += "\nLap times\n\n"
+    else:
+        ts += "\nLap times\n\n"
+
+    # display each lap times
+    for i in range(len(laps_start_end)):
+        start, end = laps_start_end[str(i + 1)].values()
+        if color:
+            ts += f'\033[94mLap {(i + 1)}\033[0m : \033[92m{start:08.3f}' +\
+            f'\033[0m - \033[96m{end:08.3f}\033[0m   =   ' +\
+            f'\033[92m{(end - start):.3f}\033[0ms\n'
+        else:
+            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
+                  f'{(end - start):.3f}s\n'
+    
+    ts.strip()
+
+    return ts
+
+
+def extract_general_data(file_object, verbose : bool = False) -> dict:
+    """
+    This funciton is responsible for removal of first rows in data which are
+    responsible for storage of additional informaiton such as car model,
+    track, name, distance. Those data are removed from the initial table but 
+    can later be accessed via external variable
+    """
+
+    # Read all information which are stored in the beginning of the file
+    track_summary = {
+    'format' : file_object[0][1],
+    'venue' : file_object[1][1],
+    'vehicle' : file_object[2][1],
+    'driver' : file_object[3][1],
+    'device' : file_object[4][1],
+    'comment' : file_object[5][1],
+    'log_date' : file_object[6][1],
+    'log_time' : file_object[7][1],
+    'start_time' : file_object[7][5],
+    'sample_rate' : file_object[8][1],
+    'end_time' : file_object[8][5],
+    'duration' : file_object[9][1],
+    'range' : file_object[10][1],
+    'beacon_makers' : ...
+    }
+
+    # Add beacon makers in readable form (list of floats)
+    beacon_makers = file_object[11][1].strip().split(" ")
+    beacon_makers = [float(i) for i in beacon_makers]
+    track_summary['beacon_makers'] = beacon_makers
+
+    # Prepare dict of dicts which contains start end end of each lap
+    # Lap 1 : 0.000 - 107.154
+    # Lap 2 : 107.154 - 446.093
+    # etc.
+    laps_start_end = {}
+    tmp_start = float(track_summary['start_time'])
+    for i in range(len(beacon_makers)):
+        laps_start_end[str(i + 1)] = {"start" : tmp_start, 
+                                      "end" : beacon_makers[i]}
+        tmp_start = beacon_makers[i]
+    else:
+        if float(track_summary['end_time']) > float(beacon_makers[-1]):
+            laps_start_end[str(i + 2)] = {"start" : beacon_makers[i], 
+                                    "end" : float(track_summary['end_time'])}
+    track_summary['laps_start_end'] = laps_start_end
+
+    # Display informaiton in the console if 'verbose' param set to 'True'
+
+    if verbose:
+        print(display_track_summary(track_summary, laps_start_end, True))
+        
+    return track_summary
 
 
 def prepare_data(file_object, verbose : bool = False,
@@ -417,13 +637,14 @@ def prepare_data(file_object, verbose : bool = False,
         print("\n\n" + "-" * 80 + "\n\nRemoving columns\n")
     file_object =__remove_unnecessary_colums(file_object, column_remove_list, 
                                              verbose)
-    
-    if verbose:
-        print("\n" + "-" * 80 + "\n\nAdding missing data\n")
-    file_object = __fill_missing_lap_data(file_object,
-                                          race_info['laps_start_end'], 
-                                          convert_values_with_float_conversion,
-                                          verbose)
+
+    # Fill out missing values
+
+    for row in range(1,len(file_object)):
+        if convert_values_with_float_conversion:
+            file_object[row] = [x if x != '' else 0.0 for x in file_object[row]]
+        else:
+            file_object[row] = [x if x != '' else "0" for x in file_object[row]]
 
     if convert_values_with_float_conversion:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values usign float " +
@@ -434,7 +655,17 @@ def prepare_data(file_object, verbose : bool = False,
                           "strings\n")
         file_object = __even_out_comma_notation_str(file_object)
     
-    return race_info, file_object
+    if verbose:
+        print("\n" + "-" * 80 + "\n\nAdding missing data\n")
+
+    values = __fill_missing_data(file_object,
+                                     race_info['laps_start_end'], 
+                                     convert_values_with_float_conversion,
+                                     verbose)
+    file_object, data_all_laps, data_for_best_lap, best_time_section = values
+    
+    return race_info, data_all_laps, data_for_best_lap, best_time_section, \
+            file_object
 
 
 def save_data_csv_coma_format(file_object, log_date : str, log_time : str, 
@@ -442,15 +673,10 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str,
     """
     This function is responsible for storage of modified file into a new file
     """
-    import csv
-    
     if special_path:
-        file_path = f"{special_path}{sign}cleaned_data_" +\
-                    f"{log_date.replace('-','.').replace('/','.')}_" +\
-                    f"{log_time.replace(':','-')}.csv"
+        file_path = f"{special_path}{sign}{log_date}_{log_time}_cleaned_data.csv"
     else:
-        file_path = f"cleaned_data_{log_date.replace('-','.')}_" +\
-                    f"{log_time.replace(':','-')}.csv"
+        file_path = f"{log_date}_{log_time}_cleaned_data.csv"
 
 
     new_file = open(file_path,'w')
@@ -459,6 +685,37 @@ def save_data_csv_coma_format(file_object, log_date : str, log_time : str,
     csvwriter.writerows(file_object)
 
     new_file.close()
+
+
+def save_laps_section_all_laps(path, data, title):
+    
+    f = open(f"{path}{sign}{title}.csv","w")
+    file = csv.writer(f)
+    file.writerow(["Lap","Section","Max","Min","Avg"])
+    for lap in data:
+        for section in data[lap]:
+            file.writerow(
+                [lap,
+                section,
+                str(data[lap][section]["max"]).replace(".",","),
+                str(data[lap][section]["min"]).replace(".",","),
+                str(data[lap][section]["avg"]).replace(".",",")])
+    f.close()
+
+
+def save_data_best_sections(path, data, title):
+    
+    f = open(f"{path}{sign}{title}.csv","w")
+    file = csv.writer(f)
+    file.writerow(["Section","Max","Min","Avg","Best Time"])
+    for section in data:
+        file.writerow(
+            [section,
+             str(data[section]["max"]).replace(".",","),
+             str(data[section]["min"]).replace(".",","),
+             str(data[section]["avg"]).replace(".",","),
+             str(data[section]["best_time"]).replace(".",",")])
+    f.close()
 
 
 if __name__ == "__main__":
