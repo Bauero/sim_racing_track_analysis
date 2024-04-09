@@ -4,6 +4,7 @@ from Motec software. By default this file can be use as a standalone app, but
 it can be run by external program
 """
 
+
 import os
 import csv
 from math import inf
@@ -323,6 +324,9 @@ def __add_data_for_each_lap(file_object,
             tol = f"{tol}"
             dol = f"{dol}"
             
+        file_object[row].insert(TIME_ON_LAP,tol)
+        file_object[row].insert(DISTANCE_ON_LAP,dol)
+
         file_object[row].insert(TIME_ON_LAP,tol)
         file_object[row].insert(DISTANCE_ON_LAP,dol)
 
