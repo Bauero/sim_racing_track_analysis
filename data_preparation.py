@@ -259,7 +259,7 @@ def __add_missing_laps_numbers(file_object,
     if verbose:
         print()
 
-    return file_object, lap
+    return file_object
 
 
 def __add_data_for_each_lap(file_object,
