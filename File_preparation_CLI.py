@@ -287,7 +287,7 @@ def __interactive_config(file_path):
     return mk_file, cov_val_fl, h_cod_rem, delimiter, col_to_rem
 
 
-def __multiple_file_processing(data_to_process,
+def multiple_file_processing(data_to_process,
                                mk_file : bool,
                                cov_val_fl : bool,
                                h_cod_rem : bool, 
@@ -317,8 +317,6 @@ def __multiple_file_processing(data_to_process,
 
     - `directory_choosen` (str) - Directory path under which files will be saved
     """
-
-    __clean()
 
     for n, elem in enumerate(data_to_process):
         file_name, file_path, size = elem.values()
@@ -429,7 +427,7 @@ def option1(v : bool):
                 "saved?\033[0m\nPress 'y' + Enter to change | Enter to " + 
                 "continue\n>>> ").strip().lower()
     
-    if ans == 'n':
+    if ans == 'y':
         Tk().withdraw()
         dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
 
@@ -596,16 +594,18 @@ def option2(v : bool):
 
                 sum_of_sizes += size
 
-            __multiple_file_processing(data_to_process,
-                                       mk_file,
-                                       cov_val_fl, 
-                                       h_cod_rem, 
-                                       col_to_rem, 
-                                       processed_size, 
-                                       sum_of_sizes, 
-                                       v,
-                                       delim,
-                                       file_path)
+            __clean()
+
+            multiple_file_processing(data_to_process,
+                                     mk_file,
+                                     cov_val_fl, 
+                                     h_cod_rem, 
+                                     col_to_rem, 
+                                     processed_size, 
+                                     sum_of_sizes, 
+                                     v,
+                                     delim,
+                                     file_path)
             
             print("#" * 80 + "\n")
             input("\033[92mFile processing finished\033[0m\n\nPress Enter" +
@@ -697,16 +697,18 @@ def option3(v : bool):
     directory_choosen = directory_choosen + sign + "processed_data"
     os.mkdir(directory_choosen)
 
-    __multiple_file_processing(data_to_process,
-                               mk_file,
-                               cov_val_fl,
-                               h_cod_rem, 
-                               col_to_rem,
-                               processed_size,
-                               sum_of_sizes,
-                               v,
-                               delim,
-                               directory_choosen)
+    __clean()
+
+    multiple_file_processing(data_to_process,
+                             mk_file,
+                             cov_val_fl,
+                             h_cod_rem, 
+                             col_to_rem,
+                             processed_size,
+                             sum_of_sizes,
+                             v,
+                             delim,
+                             directory_choosen)
     
     print("#" * 80 + "\n")
     input("\n\033[92mFile processing finished\033[0m\n\nPress " +
@@ -765,6 +767,7 @@ def menu():
                     __clean()
                 case "3":
                     option3(verbose)
+                    tmp = True
                     __clean()
                 case "4":
                     verbose = not verbose
@@ -774,11 +777,12 @@ def menu():
                     else:
                         print("\n\033[91mNow command won't executed with " +
                               "description\033[0m")
+                    tmp = True
                 case "5":
                     break
                 case "h":
                     __clean()
-                    hint()
+                    tmp = True
 
     __clean()
     exit()
