@@ -157,9 +157,9 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
 
     if verbose:
         print(c_yellow("The following columns will be removed:"))
-        for i in range(len(to_remove)):
+        for i in range(len(physical_columns)):
             print(c_yellow(f"Column {columns_to_remove[i]}") + " : " +\
-                  c_cyan(f"'{to_remove[i]}'"))
+                  c_cyan(f"'{physical_columns[i]}'"))
 
     columns_to_remove = sorted(columns_to_remove, reverse=True)
 
@@ -169,7 +169,7 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
 
 
     if verbose:
-        print(c_green(f"\nSuccessfully removed {len(to_remove)} columns"))
+        print(c_green(f"\nSuccessfully removed {len(physical_columns)} columns"))
 
     return file_object
 
@@ -603,7 +603,7 @@ def extract_general_data(file_object, verbose : bool = False) -> dict:
 def prepare_data(file_object, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
-                 column_remove_list : list = to_remove,
+                 column_remove_list : list = physical_columns,
                  ):
     """
     This is general function which is responsible for data preparation
