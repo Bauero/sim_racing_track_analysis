@@ -123,30 +123,31 @@ def show_stats_one_lap_all_datasets(datasets : list[DataFrame],
     return whole_plot, plots, title
 
 
-def save_graphs_of_files(files, laps):
-    Tk().withdraw()
-    directory = askdirectory(title="Choose directory to save graphs")
-    if not directory: return
+def example1():
+    """
+    This funciton is responsible for:
 
-    for i in range(laps):
-        whole_plot, plots, title = show_stats_one_lap_all_datasets(
-                                        files, 
-                                        "Distance_on_lap",
-                                        "SPEED",
-                                        lap = i+1)
-        whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
+    1. Asking for source files which would be analyzed
+    2. Assuring thery are formatted well (all values are floats)
+    3. Asking where to store grapsh when they will be done
+    4. Generating plots and storing them inside 
+    """
 
-
-def main():
+    # Ask for files to get data from
     Tk().withdraw()
     fl_paths = askopenfilenames(initialdir="~", 
                                 title="Choose files with racing data",
                                 filetypes=[("CSV","*.csv")])
 
+    # Quit if no files selected
     if not fl_paths: return
+
+    # Otherwise ...
     files = []
     exceptions = ['LAP_BEACON']
 
+    # Read each file, and assure, that all columns contains float (excep columns
+    # which are stored in list 'excptions' - those will be converted to int)
     for file in fl_paths:
         data = read_csv(file, 
                            skip_blank_lines=True, 
@@ -158,8 +159,30 @@ def main():
         data[exceptions] = data[exceptions].astype(int)
         files.append(data)
 
-    save_graphs_of_files(files, 5)
+    # Now, generate 5 grahs - one for each lap, to compare how specific value, 
+    # changes during every lap for each driver
+    laps = 5
+
+    # Here, I want to display speed, for specific distance value on every lap,
+    # for each driver (for each source file I selected) - I have to specify
+    # names of columns which will be used as X and Y axis
+    X_axis = "Distance_on_lap"
+    Y_axis = "SPEED"
+
+    # Before proceeding, ask where grapsh should be stored
+    Tk().withdraw()
+    directory = askdirectory(title="Choose directory to save graphs")
+    if not directory: return
+
+    # Generate graphs, according to the settings
+    for i in range(laps):
+        whole_plot, plots, title = show_stats_one_lap_all_datasets(
+                                        files, 
+                                        X_axis,
+                                        Y_axis,
+                                        lap = i+1)
+        whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__example__":
+    example1()
