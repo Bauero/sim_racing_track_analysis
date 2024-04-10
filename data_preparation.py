@@ -466,6 +466,14 @@ def __fill_missing_data(file_object,
     removing them - this is done ealier)
     """
 
+    # Adding missing values in columns
+
+    for row in range(1,len(file_object)):
+        if values_in_float:
+            file_object[row] = [x if x != '' else 0.0 for x in file_object[row]]
+        else:
+            file_object[row] = [x if x != '' else "0" for x in file_object[row]]
+
     # Adding missing lap numbers
 
     file_object = __add_missing_laps_numbers(file_object, 
