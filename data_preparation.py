@@ -74,7 +74,6 @@ sections = {
 #############################  INTERNAL FUNCITONS  #############################
 
 
-
 def __remove_unnecessary_rows(file_object, hard_coded : bool = True, 
                               verbose : bool = False):
     """
