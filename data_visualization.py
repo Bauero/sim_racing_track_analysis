@@ -190,5 +190,5 @@ def example1():
         whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
 
 
-if __name__ == "__example__":
+if __name__ == "__main__":
     example1()
