@@ -12,6 +12,9 @@ import math
 INF = math.inf
 
 
+##########################  FUNCTIONS TO MAKE GRAPHS  ##########################
+
+
 def show_speed_graph_whole(table):
     laps = table['LAP_BEACON'].unique()
 
@@ -121,6 +124,9 @@ def show_stats_one_lap_all_datasets(datasets : list[DataFrame],
     plt.yticks(arange(lowest_data, highiest_data * 1.01, final_data_step))
 
     return whole_plot, plots, title
+
+
+######################  EXAMPLES OF USE OF THE FUNCTIONS  ######################
 
 
 def example1():
