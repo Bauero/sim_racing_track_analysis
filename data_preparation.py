@@ -8,6 +8,7 @@ it can be run by external program
 import os
 import csv
 from math import inf
+from additional_commands import c_blue, c_green, c_pink, c_cyan, c_yellow
 
 sign = '\\' if os.name == 'nt' else '/'
 to_remove = ['SUS_TRAVEL_LF',
@@ -73,6 +74,7 @@ sections = {
 #############################  INTERNAL FUNCITONS  #############################
 
 
+
 def __remove_unnecessary_rows(file_object, hard_coded : bool = True, 
                               verbose : bool = False):
     """
@@ -101,9 +103,8 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
             # remove all empty rows
             if row == []:
                 if verbose:
-                    print("\033[93mRemoving row \033[96m", end = "")
                     ending = " ..." if len(str(row)) > 67 else ""
-                    print(f"{str(row)[:64]}" + "\033[0m" + ending)
+                    print(c_yellow(f"Removing row {str(row)[:64]}") + ending)
                     counter += 1
                 file_object.remove(row)
             else:
@@ -114,28 +115,26 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
                     float(row[0])
                 except:
                     if verbose:
-                        print("\033[93mRemoving row \033[96m", end = "")
                         ending = " ..." if len(str(row)) > 67 else ""
-                        print(f"{str(row)[:64]}" + "\033[0m" + ending)
+                        print(c_yellow(f"Removing row {str(row)[:64]}") + \
+                               ending)
                         counter += 1
                     file_object.remove(row)
 
         if verbose:
-            print("\033[93m" + f"\nRemoved {counter} rows from the table" + 
-                  "\033[0m")
+            print(c_yellow(f"\nRemoved {counter} rows from the table"))
 
     # Hard-coded solution - less flexible but faster
     else:
         if verbose: 
-            print("\033[93mRemoving first 14 rows from data\033[0m")
+            print(c_yellow("Removing first 14 rows from data"))
         file_object = file_object[14:]
 
         if verbose:
-            print("\033[93mRemoving 2,3, and 4 row - first one is title " + 
-                  ": \033[0m\n")
+            print(c_yellow("Removing 2,3, and 4 row - first one is title : \n"))
             ending = " ..." if len(str(file_object[0])) > 76 else ""
-            print("\033[94m" + str(file_object[0])[:76] + ending + "\033[0m", 
-                  end = "")
+            print(c_blue(str(file_object[0])[:76] + ending), end = "")
+
         file_object.pop(1)
         file_object.pop(1)
         file_object.pop(1)
@@ -151,16 +150,16 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
 
     if not custom_to_remove:
         if verbose:
-            print("\033[93mNo colums to remove - data left untouched\033[0m")
+            print(c_yellow("No colums to remove - data left untouched"))
         return file_object        
 
     columns_to_remove = [file_object[0].index(i) for i in custom_to_remove]
 
     if verbose:
-        print("\033[93mThe following columns will be removed:\033[0m")
+        print(c_yellow("The following columns will be removed:"))
         for i in range(len(to_remove)):
-            print("\033[93m" + f"Column {columns_to_remove[i]}" + 
-                  "\033[0m : \033[96m" + f"'{to_remove[i]}'" + "\033[0m")
+            print(c_yellow(f"Column {columns_to_remove[i]}") + " : " +\
+                  c_cyan(f"'{to_remove[i]}'"))
 
     columns_to_remove = sorted(columns_to_remove, reverse=True)
 
@@ -170,13 +169,12 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
 
 
     if verbose:
-        print("\033[92m" + f"\nSuccessfully removed {len(to_remove)} columns" + 
-              "\033[0m")
+        print(c_green(f"\nSuccessfully removed {len(to_remove)} columns"))
 
     return file_object
 
 
-def __convert_values_to_float(file_object):
+def convert_values_to_float(file_object):
     """
     The purpose of this function is to convert all values to float (except
     first row)
@@ -235,8 +233,7 @@ def __add_missing_laps_numbers(file_object,
     lap = "1"
     last_time = lap_info[lap]['end']
     if verbose:
-        print("\033[94m" + f"Filling out rows in lap " + "\033[0m\033[93m" + 
-              f"{lap}" + "\033[0m")
+        print(c_blue(f"Adding row numbers for lap ") + c_yellow(f"{lap}"))
     
     curr_time = None
 
@@ -253,11 +250,9 @@ def __add_missing_laps_numbers(file_object,
             last_time = lap_info[lap]['end']
             file_object[row][LAP_BEACON] = lap
             if verbose:
-                print("\033[94mFilling out information about lap " + 
-                      "\033[0m\033[93m" + f"{lap}" + "\033[0m")
+                print(c_blue("Adding row numbers for lap ") + \
+                      c_yellow(f"{lap}"))
 
-    if verbose:
-        print()
 
     return file_object
 
@@ -287,8 +282,8 @@ def __add_data_for_each_lap(file_object,
     full_laps = list(lap_info.keys())
 
     if verbose:
-        print("\033[94mFilling out relative time and distance on lap " + 
-                    "\033[0m\033[93m1\033[0m")
+        print(c_blue("\nAdding relative time and distance on lap ") + 
+              c_yellow("1"))
 
     for row in range(1, len(file_object)):
         lap_from_data = file_object[row][LAP_BEACON]
@@ -305,8 +300,8 @@ def __add_data_for_each_lap(file_object,
                 time_offset = lap_info[str(int(lfdf-1))]["end"]
             distance_offset = float(file_object[row][DISTANCE])
             if verbose:
-                print("\033[94mFilling out relative time and distance on lap " + 
-                        "\033[0m\033[93m" + f"{int(lfdf)}" + "\033[0m")
+                print(c_blue("Adding relative time and distance on lap ") + 
+                      c_yellow(f"{int(lfdf)}"))
 
 
         try: tol = round(float(file_object[row][TIME]) - time_offset, 3)
@@ -326,9 +321,6 @@ def __add_data_for_each_lap(file_object,
 
         file_object[row].insert(TIME_ON_LAP,tol)
         file_object[row].insert(DISTANCE_ON_LAP,dol)
-
-    if verbose:
-        print("\n\033[92mFilling out rows completed\033[0m")
 
     return file_object
 
@@ -400,8 +392,7 @@ def __add_sections_and_analyze(file_object,
             start_time_section = time_in_row
 
     if verbose:
-        print("\033[94mFilling out sections on laps " + 
-                    "\033[0m\033[93m1\033[0m")
+        print(c_blue("\nAdding sections for lap ") + c_yellow('1'))
 
     for row in range(1, len(file_object)):
         dist_on_lap = float(file_object[row][DISTANCE_ON_LAP])
@@ -430,8 +421,8 @@ def __add_sections_and_analyze(file_object,
             }
 
             if verbose:
-                print("\033[94mFilling out sections for lap " + 
-                        "\033[0m\033[93m" + f"{current_lap}" + "\033[0m")
+                print(c_blue("Adding sections for lap ") +\
+                      c_yellow(f"{current_lap}"))
 
         # For every new section
 
@@ -462,9 +453,6 @@ def __add_sections_and_analyze(file_object,
                         )
 
     data_for_best_lap = {best_time_lap[0] : data_all_laps[best_time_lap[0]]}
-
-    if verbose:
-        print("\n\033[92mFilling out rows completed\033[0m")
 
     return file_object, data_all_laps, data_for_best_lap, best_time_section
 
@@ -501,6 +489,8 @@ def __fill_missing_data(file_object,
 
     file_object, data_all_laps, data_for_best_lap, best_time_section = values
 
+    if verbose:
+        print(c_green("\nAdding new columns completed"))
 
     return file_object, data_all_laps, data_for_best_lap, best_time_section
 
@@ -527,8 +517,8 @@ def display_track_summary(track_summary, laps_start_end, color : bool = False):
         if stats == 'beacon_makers' or stats == 'laps_start_end':
             continue
         if color:
-            ts += f"\033[95m{stats.capitalize():20}\033[0m : " +\
-                  f"{track_summary[stats]}\n"
+            ts += c_pink(f"{stats.capitalize():20}") + \
+                 " : "  +  f"{track_summary[stats]}\n"
         else:
             ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
 
@@ -542,9 +532,10 @@ def display_track_summary(track_summary, laps_start_end, color : bool = False):
     for i in range(len(laps_start_end)):
         start, end = laps_start_end[str(i + 1)].values()
         if color:
-            ts += f'\033[94mLap {(i + 1)}\033[0m : \033[92m{start:08.3f}' +\
-            f'\033[0m - \033[96m{end:08.3f}\033[0m   =   ' +\
-            f'\033[92m{(end - start):.3f}\033[0ms\n'
+            ts += c_blue(f'Lap {(i + 1)}')        + ' : ' +\
+                  c_green(f'{start:08.3f}')       + ' - ' + \
+                  c_cyan(f'{end:08.3f}')          + '   =   ' +\
+                  c_green(f'{(end - start):.3f}') + '\n'
         else:
             ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
                   f'{(end - start):.3f}s\n'
@@ -644,7 +635,7 @@ def prepare_data(file_object, verbose : bool = False,
     if convert_values_with_float_conversion:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values usign float " +
                           "funtion\n")
-        file_object = __convert_values_to_float(file_object)
+        file_object = convert_values_to_float(file_object)
     else:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values by modyfing " +
                           "strings\n")

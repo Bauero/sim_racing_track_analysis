@@ -3,9 +3,10 @@ This file contains menu to operate data_preparation file
 """
 
 import os
-from data_preparation import *
-from tkinter import Tk
 import csv
+from data_preparation import *
+from additional_commands import *
+from tkinter import Tk
 from tkinter import filedialog
 
 
@@ -18,19 +19,21 @@ def __display_path(new_file, title):
     This function allows to show title in fancy way, with custom title
     """
     
-    print("\033[92m" + f"{title}" +"\033[0m:\n\033[94m", end = "")
+    print(c_green(f"{title}") + ":\n", end = "")
     length = 0
     parts_of_new_file = new_file.split(sign)
     parts_of_new_file = parts_of_new_file[1:] if parts_of_new_file[0] == "" \
         else parts_of_new_file
     for i in range(len(parts_of_new_file)):
         if i == len(parts_of_new_file) - 1:
-            print("\033[95m", end ="")
-        print(f"{parts_of_new_file[i]}", end = "")
+            print(c_pink(f"{parts_of_new_file[i]}"), end = "")
+        else:
+            print(c_blue(f"{parts_of_new_file[i]}"), end = "")
         length += 1
         if i < len(parts_of_new_file) - 1:
             print("\n" + " " * length + "└> ", end = "")
-    print("\033[0m\n")
+    
+    print("\n")
 
 
 def __ask_menu(func, value):
@@ -45,16 +48,18 @@ def __ask_menu(func, value):
     while True:
         func()
         print()
-        odp = input("Select new setting\n\033[92mT - True\n\033[91mF - " +
-                    "False\033[0m\n\033[93mC - Cancel\033[0m\n\n>>> ")\
-                        .strip().lower()
+        odp = input("Select new setting\n"  +
+                     c_green("T - True\n")  +
+                     c_red("F - False\n")   +
+                     c_yellow("C - Cancel") + 
+                     "\n\n>>> ").strip().lower()
         print()
         if odp == "t" or odp == "true":
             value = True ; break
         elif odp == "f" or odp == "false":
             value = False ; break
         elif odp == "c": break
-    print("\033[95mAfter change:\033[0m\n")
+    print(c_pink("After change:\n"))
     return value
 
 
@@ -112,35 +117,35 @@ def __interactive_config(file_path):
     if file_path:
         __display_path(file_path, "You've choosen the following file/directory")
 
-    print("\033[93mBefore proceeding confirm current configuration:\033[0m\n\n")
+    print(c_yellow("Before proceeding confirm current configuration:\n\n"))
 
     def conf_mkfile():
-        print("\033[94m1\033[0m - Write general race info in separate file = " +
-              str("\033[92m" if mk_file else "\033[91m") +
-              f"{mk_file}\033[0m")
+        # Conversion to str is necesary, because for whatever reason, this code
+        # doesn't work properly without it on 3.11. In other examples it does
+        # fine
+        print(c_blue('1') + " - Write general race info in separate file = " +
+              str(c_green("True") if mk_file else c_red("False")))
     
     def conf_cvf():
-        print("\033[94m2\033[0m - Convert values using float ; not str = " +
-              str("\033[92m" if cov_val_fl else "\033[91m") +
-              f"{cov_val_fl}\033[0m")
+        print(c_blue('2') + " - Convert values using float ; not str = " +
+              c_green("True") if cov_val_fl else c_red("False"))
 
-    def conf_hcr():    
-        print("\033[94m3\033[0m - Remove rows using hard-coded solution = " +
-              str("\033[92m" if h_cod_rem else "\033[91m") +
-              f"{h_cod_rem}\033[0m")
+    def conf_hcr():   
+        print(c_blue('3') + " - Remove rows using hard-coded solution = " +
+              c_green("True") if h_cod_rem else c_red("False"))
 
     def conf_del():
-        print("\033[94m4\033[0m - Modify current delimiter. Current = '" +
-              f"{delimiter}\033[0m'")
+        print(c_blue('4') + " - Modify current delimiter. Current = " +
+              f"'{delimiter}'")
 
     def conf_ctr():
         if not col_to_rem:
-            print("\033[94m5\033[0m - Columns which will be removed from data: " +
-                  "\033[91m No columns to remove \033[0m ( [] )")
+            print(c_blue('5') + " - Columns which will be removed from data: " +
+                  c_red("No columns to remove ") + "( [] )")
         else:
-            print("\033[94m5\033[0m - Columns which will be removed from data:\n[")
+            print(c_blue('5') + " - Those columns will be removed from data:\n[")
             for n, col in enumerate(col_to_rem):
-                print(f"  '" + "\033[96m" + col + "\033[0m" + 
+                print(f"  '" + c_cyan(col) + 
                       f"'{',' if n+1 < len(col_to_rem) else ''}")
             print("]")
 
@@ -161,10 +166,10 @@ def __interactive_config(file_path):
     while not confimed:
 
         o = input("\nNumber + Enter => Modify config | Enter => Confirm " +
-                  "current config\n" +
-                  "('\033[95ma\033[0m' to \033[95mdisplay all configs\033[0m" +
-                  " | '\033[96mh\033[0m' for \033[96mhelp\033[0m" + 
-                  " | '\033[93mc\033[0m' to \033[93mcancel\033[0m)\n\n>>> ")
+                  "current config\n(" +
+                  f"'{c_pink('a')}' to {c_pink('display all configs')} | " +
+                  f"'{c_blue('h')}' for {c_blue('help')} | " +
+                  f"'{c_yellow('c')}' to {c_yellow('cancel')})\n\n>>> ")
         
         o = o.strip().lower()
 
@@ -174,18 +179,18 @@ def __interactive_config(file_path):
                 case "1":
                     mk_file = __ask_menu(conf_mkfile, mk_file)
                     __clean()
-                    print("\033[95mAfter change:\033[0m\n")
+                    print(c_pink("After change:\n"))
                     conf_mkfile()
                     print("\n")
                 case "2":
                     cov_val_fl = __ask_menu(conf_cvf, cov_val_fl)
                     __clean()
-                    print("\033[95mAfter change:\033[0m\n")
+                    print(c_pink("After change:\n"))
                     conf_cvf()
                 case "3":
                     h_cod_rem = __ask_menu(conf_hcr, h_cod_rem)
                     __clean()
-                    print("\033[95mAfter change:\033[0m\n")
+                    print(c_pink("After change:\n"))
                     conf_hcr()
                 case "4":
                     while True:
@@ -207,7 +212,7 @@ def __interactive_config(file_path):
                                             end="")
                                 break
                     __clean()
-                    print("\033[95mAfter change:\033[0m\n")
+                    print(c_pink("After change:\n"))
                     conf_del()
                 case "5":
                     while True:
@@ -231,7 +236,7 @@ def __interactive_config(file_path):
                                 filetypes=[("Text file", "*.txt")])
                             
                             if not file:
-                                print("\033[91mNo file was choosen !!!\033[0m")
+                                print(c_red("No file was choosen !!!"))
                                 ans = input(r"Do you want to try again? [y\N]" +
                                             "\n>>> ").strip().lower()
                                 if ans == "y":
@@ -258,24 +263,24 @@ def __interactive_config(file_path):
                                     break
                             break
                     __clean()
-                    print("\033[95mAfter change:\033[0m\n")
+                    print(c_pink("After change:\n"))
                     conf_ctr()                           
                 case "a":
                     __clean()
-                    print("\033[93mCurrent config after changes\033[0m\n\n")
+                    print(c_yellow("Current config after changes\n\n"))
                     h()
                 case "h":
                     __clean()
                     print(__interactive_config.__doc__[125:], end = "")
                     input("\n\nPress Enter to continue >>> ")
                     __clean()
-                    print("\033[93mCurrent config after changes\033[0m\n\n")
+                    print(c_yellow("Current config after changes\n\n"))
                     h()
                 case "c":
                     __clean()
                     a = input("Do you want to cancel process and go to main " +
-                              "menu? [\033[91my\033[0m\\\033[92mN\033[0m]" + 
-                              "\n>>> ").strip().lower()
+                              f"menu? [{c_red('y')} \\ {c_green('N')}]" + 
+                              "\n\n>>> ").strip().lower()
                     if a == "y":
                         return None
                     else:
@@ -372,7 +377,7 @@ def multiple_file_processing(data_to_process,
                                              race_data['laps_start_end'])
 
                 if v:
-                    print("\033[92mWriting information to file Sucessful\033[0m\n")
+                    print(c_green("Writing information to file Sucessful\n"))
             
                 txt_file.write(ts)
                 
@@ -386,7 +391,7 @@ def multiple_file_processing(data_to_process,
             save_data_csv_coma_format(processed_file, date, time, save_dir)
             
             if v:
-                print("\033[92mWriting information to file Sucessful\033[0m\n")
+                print(c_green("Writing information to file Sucessful\n"))
 
             processed_size += size
             print("-" * 80 + "\n")
@@ -394,7 +399,7 @@ def multiple_file_processing(data_to_process,
                   f"{processed_size/sum_of_sizes:.1%}\n")
             print("\n" + "*" * 80 + "\n\n")
         except Exception as e:
-            print(f"\033[91mCouldn't process file {file_name} - {e}\033[0m")
+            print(c_red(f"Couldn't process file {file_name} - {e}"))
             odp = input(r"Do you want to continue? [y\N] ")
             if odp == "n": break
 
@@ -422,10 +427,11 @@ def option1(v : bool):
 
     __clean()
 
-    print("\033[92mConfigutraiton saved !\033[0m\n")
-    ans = input("\033[93mDo you want to change place where files will be " + 
-                "saved?\033[0m\nPress 'y' + Enter to change | Enter to " + 
-                "continue\n>>> ").strip().lower()
+    print(c_green("Configutraiton saved !\n"))
+    ans = input(
+        c_yellow("Do you want to change place where files will be saved?") +
+        "\nPress 'y' + Enter to change | Enter to " + 
+        "continue\n>>> ").strip().lower()
     
     if ans == 'y':
         Tk().withdraw()
@@ -449,7 +455,7 @@ def option1(v : bool):
         race_data, data_all_laps, data_for_best_lap, best_time_section, \
             processed_file = values
     except KeyError as e:
-        print(f"\033[91mOperation failed: {e}\033[0m")
+        print(c_red(f"Operation failed: {e}"))
         input("\nPress Enter to go back to main menu >>> ")
         return
     
@@ -483,7 +489,7 @@ def option1(v : bool):
             ts = display_track_summary(race_data, race_data['laps_start_end'])
 
             if v:
-                print("\033[92mWriting information to file Sucessful\033[0m\n")
+                print(c_green("Writing information to file Sucessful\n"))
             
             new_file.write(ts)
 
@@ -492,12 +498,12 @@ def option1(v : bool):
         save_data_csv_coma_format(processed_file, date, time, dir_path)
 
     except Exception as e:
-        print(f"\033[91mOperation failed: {e}\033[0m")
+        print(c_red(f"Operation failed: {e}"))
         input("\nPress Enter to go back to main menu >>> ")
         return
 
     print("#" * 80 + "\n")
-    input("\033[92mOperation finished\033[0m\n\nPress Enter to continue >>> ")
+    input(c_green("Operation finished") + "\n\nPress Enter to continue >>> ")
 
 
 def option2(v : bool):
@@ -518,13 +524,9 @@ def option2(v : bool):
         print(
             "Choose if you want to run interactive mode (option 1 on " +
             "repeat) or you want\nto make one settings for all files" +
-            " ('\033[96mh\033[0m' for \033[96mhelp" +
-            "\033[0m | '\033[93mc\033[0m' to \033[93mcancel\033[0m)" +
-
-            "\n\n\033[95mi - interactive mode " +
-            "(set params to all files individually)\033[0m\n" +
-            
-            "\033[96mg - generall (set once, run for all)\033[0m"
+            f"({c_cyan('h')} for help | {c_yellow('c')} to cancel)\n\n" +
+            f"{c_pink('i - interactive mode (set params for every file)')}\n" +
+            f"{c_cyan('g - generall (set once, run for all')}\n"
         )
 
     h()
@@ -545,15 +547,15 @@ def option2(v : bool):
         elif odp == "c":
             __clean()
             a = input("Do you want to cancel process and go to main " +
-                        "menu? [\033[91my\033[0m\\\033[92mN\033[0m]" + 
-                        "\n>>> ").strip().lower()
+                        f"menu? [{c_red('y')} \\ {c_green('N')}]" + 
+                        "\n\n>>> ").strip().lower()
             if a == "y":
                 return None
             else:
                 __clean()
                 h()
         else:
-            print("\n\033[91mInvalid option !!!\033[0m")
+            print(c_red("\nInvalid option !!!"))
 
     __clean()
 
@@ -608,8 +610,8 @@ def option2(v : bool):
                                      file_path)
             
             print("#" * 80 + "\n")
-            input("\033[92mFile processing finished\033[0m\n\nPress Enter" +
-                  " to go back to the menu >>> ")
+            input(c_green("File processing finished") + 
+                  "\n\nPress Enter to go back to the menu >>> ")
 
 
 def option3(v : bool):
@@ -617,7 +619,9 @@ def option3(v : bool):
     This option is for processing files in bulk
 
     1. You choose directory from which all files will be converted
-    \033[91mWarning\033[0m
+    
+    WARNING !!!
+
     Directory cannot contain folder 'processed_files' - if your directory
     contains folder with this name, delete it, or move it somewhere
     
@@ -637,7 +641,7 @@ def option3(v : bool):
         __clean
 
         if not directory:
-            print("\033[91mNo directory was choosen !!!\033[0m")
+            print(c_red("No directory was choosen !!!"))
             ans = input("Press Enter to return to menu or write 'r' and press "+
                         "Enter to try again >>> ").strip().lower()
             if ans == "r":
@@ -650,7 +654,7 @@ def option3(v : bool):
                             list(os.listdir(directory))))
         
         if not files:
-            print("\033[91mNo CSV files detected in directory !!!\033[0m")
+            print(c_red("No CSV files detected in directory !!!"))
             ans = input("Press Enter to return to menu or write 'r' and press " +
                         "Enter to try again >>> ").strip().lower()
             if ans == "r":
@@ -660,10 +664,10 @@ def option3(v : bool):
         if v:
             print("The following files were detected:")
             for a in files:
-                print("'\033[94m" + a + "\033[0m'" )
+                print("'" + c_blue(a) + "'" )
             print()
 
-        odp = input(f"Detected \033[94m{len(files)} files\033[0m " + 
+        odp = input(f"Detected {c_blue(str(len(files)) + 'files')} " + 
                     r"- proceed? [y\N] >>> ").strip().lower()
         if odp == "n": folder_choosen = False
         else:
@@ -711,8 +715,8 @@ def option3(v : bool):
                              directory_choosen)
     
     print("#" * 80 + "\n")
-    input("\n\033[92mFile processing finished\033[0m\n\nPress " +
-          "Enter to go back to the menu >>> ")
+    input(c_green("\nFile processing finished\n\n") + 
+          "Press Enter to go back to the menu >>> ")
                 
 
 def menu():
@@ -723,19 +727,18 @@ def menu():
 
     verbose = False
     __clean()
-    print("\033[95mWelcome to data preparation program :)\033[0m\n\n")
+    print(c_pink("Welcome to data preparation program :)\n\n"))
+
     def hint():
-        print("\033[96mHere are the available options:\033[0m\n")
-        print("\033[94m1\033[0m - modify specific file\n")
-        print("\033[94m2\033[0m - modify multiple files\n")
-        print("\033[94m3\033[0m - modify all files in specified directory\n")
-        if verbose:
-            print("\033[94m4\033[0m - run commands with extensive description " +
-                  "(currently set to \033[92mTrue\033[0m)\n")
-        else:
-            print("\033[94m4\033[0m - run commands with extensive description " +
-                  "(currently set to \033[91mFalse\033[0m)\n")
-        print("\033[94m5\033[0m - \033[91mexit\033[0m")
+        print(c_cyan("Here are the available options:\n"))
+        print(c_blue("1") + " - modify specific file\n")
+        print(c_blue("2") + " - modify multiple files\n")
+        print(c_blue("3") + " - modify all files in specified directory\n")
+        print(c_blue("4") + " - run commands with extensive description " + 
+              "(currently set to " +
+              str(c_green("True") if verbose else c_red("False")) +
+              " )\n")
+        print(c_blue("5") + " - " + c_red("exit"))
 
     tmp = True
 
@@ -749,10 +752,10 @@ def menu():
             odp  = input("\nChoose option ('h' for hint) >>> ").strip().lower()
 
         if len(odp) > 1:
-            print("\n\033[91mGiven value is too long !!!\033[0m")
+            print(c_red("\nGiven value is too long !!!"))
             continue
         elif odp not in ["1","2","3","4","5","h"]:
-            print("\n\033[91mGiven value is not an option !!!\033[0m")
+            print(c_red("\nGiven value is not an option !!!"))
             continue
         else:
             __clean()
@@ -772,11 +775,14 @@ def menu():
                 case "4":
                     verbose = not verbose
                     if verbose:
-                        print("\n\033[92mNow command will be executed with " +
-                              "description\033[0m")
+                        print(c_green(
+                            "Now command will be executed with description\n"
+                            ))
                     else:
-                        print("\n\033[91mNow command won't executed with " +
-                              "description\033[0m")
+                        print(c_red(
+                            "Now command won't executed with extensive " + \
+                                " description\n"
+                            ))
                     tmp = True
                 case "5":
                     break
