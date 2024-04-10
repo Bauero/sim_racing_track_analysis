@@ -456,7 +456,7 @@ def __add_sections_and_analyze(file_object,
     return file_object, data_all_laps, data_for_best_lap, best_time_section
 
 
-def __fill_missing_data(file_object,
+def __add_additional_columns(file_object,
                             lap_info : dict[dict], 
                             values_in_float : bool,
                             verbose : bool = False):
@@ -465,14 +465,6 @@ def __fill_missing_data(file_object,
     which directly puts additioal columns, or modify exising ones (except 
     removing them - this is done ealier)
     """
-
-    # Adding missing values in columns
-
-    for row in range(1,len(file_object)):
-        if values_in_float:
-            file_object[row] = [x if x != '' else 0.0 for x in file_object[row]]
-        else:
-            file_object[row] = [x if x != '' else "0" for x in file_object[row]]
 
     # Adding missing lap numbers
 
@@ -497,7 +489,7 @@ def __fill_missing_data(file_object,
     file_object, data_all_laps, data_for_best_lap, best_time_section = values
 
     if verbose:
-        print(c_green("\nAdding new columns completed"))
+        print(c_green("\nAdding new columns completed\n"))
 
     return file_object, data_all_laps, data_for_best_lap, best_time_section
 
@@ -617,6 +609,9 @@ def prepare_data(file_object, verbose : bool = False,
 
     This function returns race informaiton in form of a dictionary
     """
+
+    # Initial file processing
+
     if verbose: print("-" * 80 + "\n")
     race_info = extract_general_data(file_object, verbose)
 
@@ -633,25 +628,38 @@ def prepare_data(file_object, verbose : bool = False,
 
     # Fill out missing values
 
+    if verbose:
+        print("\n" + "-" * 80 + "\n\nFilling out empty cells with zeros\n")
+
     for row in range(1,len(file_object)):
         if convert_values_with_float_conversion:
             file_object[row] = [x if x != '' else 0.0 for x in file_object[row]]
         else:
             file_object[row] = [x if x != '' else "0" for x in file_object[row]]
 
+    if verbose:
+        print(c_green("Filling complete"))
+
+    # Convert values according to the setting
+
     if convert_values_with_float_conversion:
-        if verbose: print("\n" + "-" * 80 + "\n\nConverting values usign float " +
-                          "funtion\n")
+        if verbose: print("\n" + "-" * 80 + "\n\nConverting values usign " + 
+                          "float funtion")
         file_object = convert_values_to_float(file_object)
     else:
-        if verbose: print("\n" + "-" * 80 + "\n\nConverting values by modyfing " +
-                          "strings\n")
+        if verbose: print("\n" + "-" * 80 + "\n\nConverting values by " + 
+                          " modyfing strings")
         file_object = __even_out_comma_notation_str(file_object)
     
     if verbose:
-        print("\n" + "-" * 80 + "\n\nAdding missing data\n")
+        print(c_green("\nConverting complete"))
 
-    values = __fill_missing_data(file_object,
+    # Add additional columns
+
+    if verbose:
+        print("\n" + "-" * 80 + "\n\nAdding additional data\n")
+
+    values = __add_additional_columns(file_object,
                                      race_info['laps_start_end'], 
                                      convert_values_with_float_conversion,
                                      verbose)
