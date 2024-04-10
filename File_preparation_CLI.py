@@ -228,7 +228,7 @@ def __interactive_config(file_path):
                         if odp == "d":
                             col_to_rem = [] ; break
                         elif odp == "f":
-                            col_to_rem = to_remove ; break
+                            col_to_rem = physical_columns ; break
                         elif odp == "u":
                             Tk().withdraw()
                             file = filedialog.askopenfilename(
