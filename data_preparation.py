@@ -669,7 +669,7 @@ def prepare_data(file_object, verbose : bool = False,
             file_object
 
 
-def save_data_csv_coma_format(file_object, log_date : str, log_time : str, 
+def save_data_csv(file_object, log_date : str, log_time : str, 
                               special_path : str):
     """
     This function is responsible for storage of modified file into a new file

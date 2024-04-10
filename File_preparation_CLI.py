@@ -388,7 +388,7 @@ def multiple_file_processing(data_to_process,
                 __display_path(full_csv_file_path, 
                             "Writing information to .csv file under location")
 
-            save_data_csv_coma_format(processed_file, date, time, save_dir)
+            save_data_csv(processed_file, date, time, save_dir)
             
             if v:
                 print(c_green("Writing information to file Sucessful\n"))
@@ -495,7 +495,7 @@ def option1(v : bool):
 
             new_file.close()
 
-        save_data_csv_coma_format(processed_file, date, time, dir_path)
+        save_data_csv(processed_file, date, time, dir_path)
 
     except Exception as e:
         print(c_red(f"Operation failed: {e}"))
