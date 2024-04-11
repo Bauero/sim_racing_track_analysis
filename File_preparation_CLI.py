@@ -128,11 +128,11 @@ def __interactive_config(file_path):
     
     def conf_cvf():
         print(c_blue('2') + " - Convert values using float ; not str = " +
-              c_green("True") if cov_val_fl else c_red("False"))
+              str(c_green("True") if cov_val_fl else c_red("False")))
 
     def conf_hcr():   
         print(c_blue('3') + " - Remove rows using hard-coded solution = " +
-              c_green("True") if h_cod_rem else c_red("False"))
+              str(c_green("True") if h_cod_rem else c_red("False")))
 
     def conf_del():
         print(c_blue('4') + " - Modify current delimiter. Current = " +

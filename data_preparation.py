@@ -297,26 +297,31 @@ def __add_data_for_each_lap(file_object,
                 time_offset = lap_info[lap_from_data]["start"]
             else:
                 time_offset = lap_info[str(int(lfdf-1))]["end"]
-            distance_offset = float(file_object[row][DISTANCE])
+            distance_offset = float(file_object[row][DISTANCE].replace(",","."))
             if verbose:
                 print(c_blue("Adding relative time and distance on lap ") + 
                       c_yellow(f"{int(lfdf)}"))
 
-
-        try: tol = round(float(file_object[row][TIME]) - time_offset, 3)
-        except ValueError:
-            tol = round(float(file_object[row][TIME].replace(",",".")) - \
-                        time_offset, 3)
-        
-        try:  dol = round(float(file_object[row][DISTANCE]) - \
-                          distance_offset, 3)
-        except ValueError:
-            dol = round(float(file_object[row][DISTANCE].replace(",",".")) - \
-                        distance_offset, 3)
+        if values_in_float:
+            try: 
+                tol = round(float(file_object[row][TIME]) - time_offset, 3)
+            except ValueError:
+                tol = round(float(file_object[row][TIME].replace(",",".")) - \
+                            time_offset, 3)
+            
+            try:  dol = round(float(file_object[row][DISTANCE]) - \
+                            distance_offset, 3)
+            except ValueError:
+                dol = round(float(file_object[row][DISTANCE].replace(",",".")) - \
+                            distance_offset, 3)
        
-        if not values_in_float:
-            tol = f"{tol}"
-            dol = f"{dol}"
+        else:
+            tol = str(round(
+                float(file_object[row][TIME].replace(",",".")) - time_offset,
+                3)).replace(".",",")
+            dol = str(round(
+                    float(file_object[row][DISTANCE].replace(",",".")) - \
+                          distance_offset, 3)).replace(".",",")
 
         file_object[row].insert(TIME_ON_LAP,tol)
         file_object[row].insert(DISTANCE_ON_LAP,dol)
@@ -342,7 +347,7 @@ def __add_sections_and_analyze(file_object,
     DISTANCE_ON_LAP = file_object[0].index('Distance_on_lap')
 
     current_section = "1"
-    current_lap = int(float(file_object[1][LAP_BEACON]))
+    current_lap = int(float(file_object[1][LAP_BEACON].replace(",",".")))
     section_end = sections[current_section]["end"]
     file_object[0].insert(SECTION,"Section")
 
@@ -368,8 +373,7 @@ def __add_sections_and_analyze(file_object,
         
         section_max = max(speeds_in_section)
         section_min = min(speeds_in_section)
-        section_avg = round(sum(speeds_in_section) / len(speeds_in_section),
-                                2)
+        section_avg = round(sum(speeds_in_section) / len(speeds_in_section), 2)
 
         scl = str(current_lap)
 
@@ -379,9 +383,15 @@ def __add_sections_and_analyze(file_object,
 
         speeds_in_section = []
 
-        time_in_row = round((float(file_object[row][TIME]) + \
-                        float(file_object[row-1][TIME])) / 2, 4)
-        time_diff = round(time_in_row - start_time_section, 4)
+        if values_in_float:
+            time_in_row = round((float(file_object[row][TIME]) + \
+                            float(file_object[row-1][TIME])) / 2, 4)
+            time_diff = round(time_in_row - start_time_section, 4)
+        else:
+            t1 = float(file_object[row][TIME].replace(",","."))
+            t2 = float(file_object[row-1][TIME].replace(",","."))
+            time_in_row = round((t1+t2)/2, 4)
+            time_diff = round(time_in_row - start_time_section, 4)
         
         if time_diff < best_time_section[current_section]["best_time"]:
             best_time_section[current_section]["best_time"] = time_diff
@@ -394,9 +404,15 @@ def __add_sections_and_analyze(file_object,
         print(c_blue("\nAdding sections for lap ") + c_yellow('1'))
 
     for row in range(1, len(file_object)):
-        dist_on_lap = float(file_object[row][DISTANCE_ON_LAP])
-        speed = float(file_object[row][sp_col])
-        lap_in_row = file_object[row][LAP_BEACON]
+        if values_in_float:
+            dist_on_lap = float(file_object[row][DISTANCE_ON_LAP])
+            speed = float(file_object[row][sp_col])
+            lap_in_row = file_object[row][LAP_BEACON]
+        else:
+            dist_on_lap = float(
+                file_object[row][DISTANCE_ON_LAP].replace(",","."))
+            speed = float(file_object[row][sp_col].replace(",","."))
+            lap_in_row = float(file_object[row][LAP_BEACON].replace(",","."))
         
         # For every new lap
 
@@ -410,6 +426,8 @@ def __add_sections_and_analyze(file_object,
                             )
 
             cls = file_object[row][LAP_BEACON]
+            if not values_in_float: 
+                cls = float(cls.replace(",","."))
             current_lap = int(cls)
 
             current_section = "1"
