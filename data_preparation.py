@@ -173,7 +173,7 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
     return file_object
 
 
-def convert_values_to_float(file_object):
+def __convert_values_to_float(file_object):
     """
     The purpose of this function is to convert all values to float (except
     first row)
@@ -256,7 +256,7 @@ def __add_missing_laps_numbers(file_object,
     return file_object
 
 
-def __add_data_for_each_lap(file_object,
+def __add_time_distance_on_lap(file_object,
                             lap_info,
                             values_in_float,
                             verbose):
@@ -297,7 +297,9 @@ def __add_data_for_each_lap(file_object,
                 time_offset = lap_info[lap_from_data]["start"]
             else:
                 time_offset = lap_info[str(int(lfdf-1))]["end"]
-            distance_offset = float(file_object[row][DISTANCE].replace(",","."))
+            dst = file_object[row][DISTANCE]
+            if not values_in_float: dst = dst.replace(",",".")
+            distance_offset = float(dst)
             if verbose:
                 print(c_blue("Adding relative time and distance on lap ") + 
                       c_yellow(f"{int(lfdf)}"))
@@ -492,7 +494,7 @@ def __add_additional_columns(file_object,
 
     # Adding additional columsn - Time_on_lap and Distance_on_lap
 
-    file_object = __add_data_for_each_lap(file_object, 
+    file_object = __add_time_distance_on_lap(file_object, 
                                           lap_info, 
                                           values_in_float,
                                           verbose)
@@ -641,7 +643,7 @@ def prepare_data(file_object, verbose : bool = False,
     
     if verbose:
         print("\n\n" + "-" * 80 + "\n\nRemoving columns\n")
-    file_object =__remove_unnecessary_colums(file_object, column_remove_list, 
+    file_object = __remove_unnecessary_colums(file_object, column_remove_list, 
                                              verbose)
 
     # Fill out missing values
@@ -663,7 +665,7 @@ def prepare_data(file_object, verbose : bool = False,
     if convert_values_with_float_conversion:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values usign " + 
                           "float funtion")
-        file_object = convert_values_to_float(file_object)
+        file_object = __convert_values_to_float(file_object)
     else:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values by " + 
                           " modyfing strings")

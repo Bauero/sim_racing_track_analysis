@@ -172,8 +172,10 @@ def example1():
     # Here, I want to display speed, for specific distance value on every lap,
     # for each driver (for each source file I selected) - I have to specify
     # names of columns which will be used as X and Y axis
-    X_axis = "Distance_on_lap"
-    Y_axis = "SPEED"
+    X_axis = "Time_on_lap"
+    Y_axis = "BRAKE"
+    X_unit = "s"
+    Y_unit = "%"
 
     # Before proceeding, ask where grapsh should be stored
     Tk().withdraw()
@@ -186,6 +188,8 @@ def example1():
                                         files, 
                                         X_axis,
                                         Y_axis,
+                                        X_unit,
+                                        Y_unit,
                                         lap = i+1)
         whole_plot.savefig(f"{directory}/{title}.png", dpi=200)
 
