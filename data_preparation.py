@@ -366,13 +366,13 @@ def __add_sections_and_analyze(file_object,
     sp_col = file_object[0].index("SPEED")-1
     start_time_section = 0
 
-    def __update_speeds(start_time_section, 
-                        speeds_in_section,
-                        data_all_laps,
-                        current_lap,
-                        current_section
-                        ):
+    def update_speeds():
         
+        nonlocal start_time_section
+        nonlocal speeds_in_section
+        nonlocal current_section
+        nonlocal current_lap
+
         section_max = max(speeds_in_section)
         section_min = min(speeds_in_section)
         section_avg = round(sum(speeds_in_section) / len(speeds_in_section), 2)
@@ -395,12 +395,17 @@ def __add_sections_and_analyze(file_object,
             time_in_row = round((t1+t2)/2, 4)
             time_diff = round(time_in_row - start_time_section, 4)
         
+        data_all_laps[scl][current_section]["time"] = time_diff
+        print(f"Time diff: {time_diff}, Time in row: {time_in_row}, Start time: {start_time_section}")
+        start_time_section = time_in_row
+
         if time_diff < best_time_section[current_section]["best_time"]:
             best_time_section[current_section]["best_time"] = time_diff
             best_time_section[current_section]["max"] = section_max
             best_time_section[current_section]["min"] = section_min
             best_time_section[current_section]["avg"] = section_avg
-            start_time_section = time_in_row
+            best_time_section[current_section]["Lap"] = current_lap
+            
 
     if verbose:
         print(c_blue("\nAdding sections for lap ") + c_yellow('1'))
@@ -420,12 +425,7 @@ def __add_sections_and_analyze(file_object,
 
         if int(lap_in_row) > current_lap:
 
-            __update_speeds(start_time_section, 
-                            speeds_in_section,
-                            data_all_laps,
-                            current_lap,
-                            current_section
-                            )
+            update_speeds()
 
             cls = file_object[row][LAP_BEACON]
             if not values_in_float: 
@@ -447,12 +447,7 @@ def __add_sections_and_analyze(file_object,
 
         if dist_on_lap > section_end:
 
-            __update_speeds(start_time_section, 
-                            speeds_in_section,
-                            data_all_laps,
-                            current_lap,
-                            current_section
-                            )
+            update_speeds()
 
             current_section = str(int(current_section) + 1)
             section_end = sections[current_section]["end"]
@@ -464,12 +459,7 @@ def __add_sections_and_analyze(file_object,
                                 current_section if not values_in_float else \
                                 int(current_section))
     else:
-        __update_speeds(start_time_section, 
-                        speeds_in_section,
-                        data_all_laps,
-                        current_lap,
-                        current_section
-                        )
+        update_speeds()
 
     data_for_best_lap = {best_time_lap[0] : data_all_laps[best_time_lap[0]]}
 
@@ -712,7 +702,7 @@ def save_laps_section_all_laps(path, data, title):
     
     f = open(f"{path}{sign}{title}.csv","w")
     file = csv.writer(f)
-    file.writerow(["Lap","Section","Max","Min","Avg"])
+    file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed","Time"])
     for lap in data:
         for section in data[lap]:
             file.writerow(
@@ -720,7 +710,8 @@ def save_laps_section_all_laps(path, data, title):
                 section,
                 str(data[lap][section]["max"]).replace(".",","),
                 str(data[lap][section]["min"]).replace(".",","),
-                str(data[lap][section]["avg"]).replace(".",",")])
+                str(data[lap][section]["avg"]).replace(".",","),
+                str(data[lap][section]["time"]).replace(".",",")])
     f.close()
 
 
@@ -728,10 +719,11 @@ def save_data_best_sections(path, data, title):
     
     f = open(f"{path}{sign}{title}.csv","w")
     file = csv.writer(f)
-    file.writerow(["Section","Max","Min","Avg","Best Time"])
+    file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed","Best Time"])
     for section in data:
         file.writerow(
-            [section,
+            [str(data[section]["Lap"]).replace(".",","),
+             section,
              str(data[section]["max"]).replace(".",","),
              str(data[section]["min"]).replace(".",","),
              str(data[section]["avg"]).replace(".",","),
