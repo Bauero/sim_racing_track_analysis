@@ -360,6 +360,8 @@ def __add_sections_and_analyze(file_object,
         k : lap_info[k]["end"] - lap_info[k]["start"] for k in lap_info.keys()
     }
 
+    Section_maximimum_speeds = {k : [] for k in sections.keys()}
+
     best_time_lap = sorted(list(time_per_lap.items()), key = lambda x : x[1])[0]
 
     speeds_in_section = []
@@ -382,6 +384,8 @@ def __add_sections_and_analyze(file_object,
         data_all_laps[scl][current_section]["max"] = section_max
         data_all_laps[scl][current_section]["min"] = section_min
         data_all_laps[scl][current_section]["avg"] = section_avg
+
+        Section_maximimum_speeds[current_section].append(section_max)
 
         speeds_in_section = []
 
@@ -459,6 +463,19 @@ def __add_sections_and_analyze(file_object,
                                 int(current_section))
     else:
         update_speeds()
+
+    for sec in best_time_section.keys():
+        s = Section_maximimum_speeds[sec]
+        l = len(s)
+        section_average = round(sum(s)/l, 2)
+        sum_deviations = 0 
+        std_dev = 0
+        if l > 1:
+            for lap in s:
+                    sum_deviations+=(lap - section_average)**2
+            std_dev = (sum_deviations / (l-1))**0.5 
+        best_time_section[sec]["std max"] = round(std_dev, 2)
+        
 
     data_for_best_lap = {best_time_lap[0] : data_all_laps[best_time_lap[0]]}
 
@@ -718,7 +735,7 @@ def save_data_best_sections(path, data, title):
     
     f = open(f"{path}{sign}{title}.csv","w")
     file = csv.writer(f)
-    file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed","Best Time"])
+    file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed","Best Time", "Std Max"])
     for section in data:
         file.writerow(
             [str(data[section]["Lap"]).replace(".",","),
@@ -726,7 +743,8 @@ def save_data_best_sections(path, data, title):
              str(data[section]["max"]).replace(".",","),
              str(data[section]["min"]).replace(".",","),
              str(data[section]["avg"]).replace(".",","),
-             str(data[section]["best_time"]).replace(".",",")])
+             str(data[section]["best_time"]).replace(".",","),
+             str(data[section]["std max"]).replace(".",",")])
     f.close()
 
 
