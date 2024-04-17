@@ -402,7 +402,7 @@ def __add_sections_and_analyze(file_object,
             time_diff = round(time_in_row - start_time_section, 4)
         
         data_all_laps[scl][current_section]["time"] = time_diff
-        start_time_section = time_in_row # correciton plus
+        start_time_section = time_in_row
 
         if time_diff < best_time_section[current_section]["best_time"]:
             best_time_section[current_section]["best_time"] = time_diff
