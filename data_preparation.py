@@ -361,14 +361,18 @@ def __add_sections_and_analyze(file_object,
     }
 
     # Lists that holds standard deviation for specific stats
-    x = ["std max", "std min", "std avg", "std time"]
-    std_of_variables = {k : {d : [] for d in x} for k in sections.keys()}
-    section_maximimum_speeds = {k : [] for k in sections.keys()}
-    section_minimum_speeds = {k : [] for k in sections.keys()}
-    section_average_speeds = {k : [] for k in sections.keys()}
-    section_average_time = {k : [] for k in sections.keys()}
+    # x = ["std max", "std min", "std avg", "std time"]
+    # std_of_variables = {k : {d : [] for d in x} for k in sections.keys()}
 
-
+    std_of_variables = dict()
+    for sec in sections.keys():
+        std_of_variables[sec] = { 
+            "std max": [],
+            "std min": [],
+            "std avg": [], 
+            "std time": []
+        }
+                              
     best_time_lap = sorted(list(time_per_lap.items()), key = lambda x : x[1])[0]
 
     speeds_in_section = []
@@ -415,10 +419,10 @@ def __add_sections_and_analyze(file_object,
             best_time_section[current_section]["Lap"] = current_lap
         
         # Add section stats to appriopriate list
-        section_maximimum_speeds[current_section].append(section_max)
-        section_minimum_speeds[current_section].append(section_min)
-        section_average_speeds[current_section].append(section_avg)
-        section_average_time[current_section].append(time_diff)
+        std_of_variables[current_section]["std max"].append(section_max)
+        std_of_variables[current_section]["std min"].append(section_min)
+        std_of_variables[current_section]["std avg"].append(section_avg)
+        std_of_variables[current_section]["std time"].append(time_diff)
 
     if verbose:
         print(c_blue("\nAdding sections for lap ") + c_yellow('1'))
@@ -475,56 +479,21 @@ def __add_sections_and_analyze(file_object,
         update_speeds()
 
     for sec in sections.keys():
-        s = section_maximimum_speeds[sec]
-        l = len(s)
-        section_average = round(sum(s)/l, 2)
-        sum_deviations = 0
-        std_dev = 0
-        if l > 1:
-            for lap in s:
-                sum_deviations+=(lap - section_average)**2
-            std_dev = (sum_deviations / (l-1))**0.5
-        best_time_section[sec]["std max"] = round(std_dev, 2)
-    
-    for sec in sections.keys():
-        s = section_minimum_speeds[sec]
-        l = len(s)
-        section_average = round(sum(s)/l, 2)
-        sum_deviations = 0
-        std_dev = 0
-        if l > 1:
-            for lap in s:
-                sum_deviations+=(lap - section_average)**2
-            std_dev = (sum_deviations / (l-1))**0.5
-        best_time_section[sec]["std min"] = round(std_dev, 2)
+        for std in std_of_variables[sec}:
+            s = std_of_variables[sec][std]
+            l = len(s)
+            section_average = round(sum(s)/l, 2)
+            sum_deviations = 0
+            std_dev = 0
+            if l > 1:
+                for lap in s:
+                    sum_deviations+=(lap - section_average)**2
+                std_dev = (sum_deviations / (l-1))**0.5
+            std_of_variables[sec][std]= round(std_dev, 2)
         
-    for sec in sections.keys():
-        s = section_average_speeds[sec]
-        l = len(s)
-        section_average = round(sum(s)/l, 2)
-        sum_deviations = 0
-        std_dev = 0
-        if l > 1:
-            for lap in s:
-                sum_deviations+=(lap - section_average)**2
-            std_dev = (sum_deviations / (l-1))**0.5
-        best_time_section[sec]["std avg"] = round(std_dev, 2)
-
-    for sec in sections.keys():
-        s = section_average_time[sec]
-        l = len(s)
-        section_average = round(sum(s)/l, 2)
-        sum_deviations = 0
-        std_dev = 0
-        if l > 1:
-            for lap in s:
-                sum_deviations+=(lap - section_average)**2
-            std_dev = (sum_deviations / (l-1))**0.5
-        best_time_section[sec]["std time"] = round(std_dev, 2)
-
     data_for_best_lap = {best_time_lap[0] : data_all_laps[best_time_lap[0]]}
 
-    return file_object, data_all_laps, data_for_best_lap, best_time_section
+    return file_object, data_all_laps, data_for_best_lap, best_time_section, std_of_variables
 
 
 def __add_additional_columns(file_object,
