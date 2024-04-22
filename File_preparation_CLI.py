@@ -339,8 +339,8 @@ def multiple_file_processing(data_to_process,
                                     cov_val_fl, 
                                     h_cod_rem, 
                                     col_to_rem)
-            race_data, data_all_laps, data_for_best_lap, best_time_section, \
-                processed_file = values
+            race_data, processed_file, data_all_laps, data_for_best_lap, \
+                best_time_section, std_of_variables  = values
             
             time, date = race_data["log_time"], race_data["log_date"]
 
@@ -361,6 +361,9 @@ def multiple_file_processing(data_to_process,
                                         f"{date}_{time}_best_lap")
             save_data_best_sections(save_dir, best_time_section, 
                                         f"{date}_{time}_best_section")
+            save_std_for_each_section(save_dir, std_of_variables,
+                                      f"{date}_{time}_std_each_section")
+
 
             if mk_file:
                 txt_file_name = f"{date}_{time}_file_summary.txt"
@@ -452,8 +455,8 @@ def option1(v : bool):
                               cov_val_fl, 
                               h_cod_rem, 
                               col_to_rem)
-        race_data, data_all_laps, data_for_best_lap, best_time_section, \
-            processed_file = values
+        race_data, processed_file, data_all_laps, data_for_best_lap, \
+            best_time_section, std_of_variables = values
     except KeyError as e:
         print(c_red(f"Operation failed: {e}"))
         input("\nPress Enter to go back to main menu >>> ")
@@ -475,7 +478,8 @@ def option1(v : bool):
                                    f"{date}_{time}_best_lap")
         save_data_best_sections(dir_path, best_time_section, 
                                 f"{date}_{time}_best_section")
-        
+        save_std_for_each_section(dir_path, std_of_variables,
+                                f"{date}_{time}_std_each_section")
 
         if mk_file:
             file_name = f"{date}_{time}_data_information"

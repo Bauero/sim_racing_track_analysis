@@ -479,7 +479,7 @@ def __add_sections_and_analyze(file_object,
         update_speeds()
 
     for sec in sections.keys():
-        for std in std_of_variables[sec}:
+        for std in std_of_variables[sec]:
             s = std_of_variables[sec][std]
             l = len(s)
             section_average = round(sum(s)/l, 2)
@@ -526,12 +526,14 @@ def __add_additional_columns(file_object,
                                         values_in_float,
                                         verbose)
 
-    file_object, data_all_laps, data_for_best_lap, best_time_section = values
+    file_object, data_all_laps, data_for_best_lap, best_time_section, \
+        std_of_variables = values
 
     if verbose:
         print(c_green("\nAdding new columns completed\n"))
 
-    return file_object, data_all_laps, data_for_best_lap, best_time_section
+    return file_object, data_all_laps, data_for_best_lap, best_time_section, \
+           std_of_variables
 
 
 ##############################  PUBLIC FUNCITONS  ##############################
@@ -703,10 +705,11 @@ def prepare_data(file_object, verbose : bool = False,
                                      race_info['laps_start_end'], 
                                      convert_values_with_float_conversion,
                                      verbose)
-    file_object, data_all_laps, data_for_best_lap, best_time_section = values
+    file_object, data_all_laps, data_for_best_lap, best_time_section, \
+        std_of_variables = values
     
-    return race_info, data_all_laps, data_for_best_lap, best_time_section, \
-            file_object
+    return race_info, file_object, data_all_laps, data_for_best_lap, \
+           best_time_section, std_of_variables           
 
 
 def save_data_csv(file_object, log_date : str, log_time : str, 
@@ -765,6 +768,19 @@ def save_data_best_sections(path, data, title):
              str(data[section]["std time"]).replace(".",",")])
     f.close()
 
+def save_std_for_each_section(path, data, title):
+    
+    f = open(f"{path}{sign}{title}.csv","w")
+    file = csv.writer(f)
+    file.writerow(["Section","Std Max", "Std Min", "Std Avg", "Std Time"])
+    for section in data:
+        file.writerow(
+            [section,
+             str(data[section]["std max"]).replace(".",","),
+             str(data[section]["std min"]).replace(".",","),
+             str(data[section]["std avg"]).replace(".",","),
+             str(data[section]["std time"]).replace(".",",")])
+    f.close()
 
 if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
