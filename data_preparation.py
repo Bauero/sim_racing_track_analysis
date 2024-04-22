@@ -753,7 +753,7 @@ def save_data_best_sections(path, data, title):
     f = open(f"{path}{sign}{title}.csv","w")
     file = csv.writer(f)
     file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed", \
-                   "Best Time", "Std Max", "Std Min", "Std Avg", "Std Time"])
+                   "Best Time"])
     for section in data:
         file.writerow(
             [str(data[section]["Lap"]).replace(".",","),
@@ -761,11 +761,7 @@ def save_data_best_sections(path, data, title):
              str(data[section]["max"]).replace(".",","),
              str(data[section]["min"]).replace(".",","),
              str(data[section]["avg"]).replace(".",","),
-             str(data[section]["best_time"]).replace(".",","),
-             str(data[section]["std max"]).replace(".",","),
-             str(data[section]["std min"]).replace(".",","),
-             str(data[section]["std avg"]).replace(".",","),
-             str(data[section]["std time"]).replace(".",",")])
+             str(data[section]["best_time"]).replace(".",",")])
     f.close()
 
 def save_std_for_each_section(path, data, title):
