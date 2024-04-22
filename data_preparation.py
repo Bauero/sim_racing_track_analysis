@@ -3,8 +3,7 @@ This file contains funcitons which would allow to help clean csv files exported
 from Motec software. By default this file can be use as a standalone app, but
 it can be run by external program
 """
-
-
+Print
 import os
 import csv
 from math import inf
