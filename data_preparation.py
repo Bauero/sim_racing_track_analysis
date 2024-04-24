@@ -363,16 +363,22 @@ def __add_additional_columns(file_object,
 ##############################  PUBLIC FUNCITONS  ##############################
 
 
-def prepare_data(file_object, verbose : bool = False,
+def prepare_data(file_path, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
                  column_remove_list : list = physical_columns,
-                 ):
+                 delim : str = ','):
     """
     This is general function which is responsible for data preparation
 
     This function returns race informaiton in form of a dictionary
     """
+
+    try:
+        file = open(file_path)
+        file_object = list(csv.reader(file, delimiter=delim))
+    except FileNotFoundError:
+        return None, None  
 
     # Initial file processing
 

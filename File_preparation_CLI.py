@@ -3,7 +3,6 @@ This file contains menu to operate data_preparation file
 """
 
 import os
-import csv
 from data_preparation import *
 from additional_commands import *
 from tkinter import Tk
@@ -293,7 +292,7 @@ def __interactive_config(file_path):
     return mk_file, cov_val_fl, h_cod_rem, delimiter, col_to_rem
 
 
-def __multiple_file_processing(data_to_process,
+def multiple_file_processing(data_to_process,
                                mk_file : bool,
                                cov_val_fl : bool,
                                h_cod_rem : bool, 
@@ -333,14 +332,16 @@ def __multiple_file_processing(data_to_process,
             full_csv_file_path = f"{file_path}" + \
                     f"{'' if file_path.endswith(sign) else sign}" +\
                     f"{file_name}"
-            file = open(full_csv_file_path)
-            csvreader = list(csv.reader(file, delimiter=delim))
-            race_data, processed_file = prepare_data(csvreader, 
+            race_data, processed_file = prepare_data(full_csv_file_path, 
                                                      v, 
                                                      cov_val_fl, 
                                                      h_cod_rem, 
-                                                     col_to_rem)
+                                                     col_to_rem,
+                                                     delim)
             
+            if race_data == None:
+                raise FileNotFoundError
+
             time, date = race_data["log_time"], race_data["log_date"]
 
             time = time.replace("/","-").replace("\\","-").replace(":","-")
@@ -390,6 +391,10 @@ def __multiple_file_processing(data_to_process,
             print(f"File '{file_name}' processed - progress " +
                   f"{processed_size/sum_of_sizes:.1%}\n")
             print("\n" + "*" * 80 + "\n\n")
+        except FileNotFoundError:
+            print(c_red(f"{e}"))
+            odp = input(r"Do you want to continue? [y\N] ")
+            if odp == "n": break
         except Exception as e:
             print(c_red(f"Couldn't process file {file_name} - {e}"))
             odp = input(r"Do you want to continue? [y\N] ")
@@ -433,17 +438,21 @@ def __option1(v : bool):
 
     print("Processing file ...\n")
 
-    csv_file = open(file_path)
-    csvreader = list(csv.reader(csv_file, delimiter=delim))
+    # csv_file = open(file_path)
+    # csvreader = list(csv.reader(csv_file, delimiter=delim))
 
     race_data = processed_file = None
 
     try:
-        race_data, processed_file = prepare_data(csvreader, 
+        race_data, processed_file = prepare_data(file_path, 
                                                  v, 
                                                  cov_val_fl, 
                                                  h_cod_rem, 
                                                  col_to_rem)
+    except FileNotFoundError:
+        print(c_red(f"{e}"))
+        input("\nPress Enter to go back to main menu >>> ")
+        return
     except KeyError as e:
         print(c_red(f"Operation failed: {e}"))
         input("\nPress Enter to go back to main menu >>> ")
@@ -474,7 +483,6 @@ def __option1(v : bool):
                 print(c_green("Writing information to file Sucessful\n"))
             
             new_file.write(ts)
-
             new_file.close()
 
         save_data_csv(processed_file, date, time, dir_path)
@@ -580,7 +588,7 @@ def __option2(v : bool):
 
             clean()
 
-            __multiple_file_processing(data_to_process,
+            multiple_file_processing(data_to_process,
                                      mk_file,
                                      cov_val_fl, 
                                      h_cod_rem, 
@@ -685,7 +693,7 @@ def __option3(v : bool):
 
     clean()
 
-    __multiple_file_processing(data_to_process,
+    multiple_file_processing(data_to_process,
                              mk_file,
                              cov_val_fl,
                              h_cod_rem, 
