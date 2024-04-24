@@ -9,66 +9,9 @@ import os
 import csv
 from math import inf
 from additional_commands import c_blue, c_green, c_pink, c_cyan, c_yellow
-
-sign = '\\' if os.name == 'nt' else '/'
-physical_columns  = ['SUS_TRAVEL_LF',
-                     'SUS_TRAVEL_RF',
-                     'SUS_TRAVEL_LR',
-                     'SUS_TRAVEL_RR',
-                     'BRAKE_TEMP_LF',
-                     'BRAKE_TEMP_RF',
-                     'BRAKE_TEMP_LR',
-                     'BRAKE_TEMP_RR',
-                     'TYRE_PRESS_LF',
-                     'TYRE_PRESS_RF',
-                     'TYRE_PRESS_LR',
-                     'TYRE_PRESS_RR',
-                     'TYRE_TAIR_LF',
-                     'TYRE_TAIR_RF',
-                     'TYRE_TAIR_LR',
-                     'TYRE_TAIR_RR',
-                     'WHEEL_SPEED_LF',
-                     'WHEEL_SPEED_RF',
-                     'WHEEL_SPEED_LR',
-                     'WHEEL_SPEED_RR',
-                     'BUMPSTOPUP_RIDE_LF',
-                     'BUMPSTOPUP_RIDE_RF',
-                     'BUMPSTOPUP_RIDE_LR',
-                     'BUMPSTOPUP_RIDE_RR',
-                     'BUMPSTOPDN_RIDE_LF',
-                     'BUMPSTOPDN_RIDE_RF',
-                     'BUMPSTOPDN_RIDE_LR',
-                     'BUMPSTOPDN_RIDE_RR',
-                     'BUMPSTOP_FORCE_LF',
-                     'BUMPSTOP_FORCE_RF',
-                     'BUMPSTOP_FORCE_LR',
-                     'BUMPSTOP_FORCE_RR']
-sections = {
-    "1"	: {"name" : "Str 1",    "start" :   0,      "end" :	670},
-    "2"	: {"name" : "Turn 1",   "start" :	670,    "end" :	900},
-    "3"	: {"name" : "Turn 2",   "start" :	900,    "end" :	990},
-    "4"	: {"name" : "Str 2-3",  "start" :	990,    "end" :	1030},
-    "5"	: {"name" : "Turn 3",   "start" :	1030,   "end" :	1330},
-    "6"	: {"name" : "Str 3-4",  "start" :	1330,   "end" :	1580},
-    "7"	: {"name" : "Turn 4",   "start" :	1580,   "end" :	1880},
-    "8"	: {"name" : "Str 4-5",  "start" :	1880,   "end" :	2000},
-    "9"	: {"name" : "Turn 5",   "start" :	2000,   "end" :	2200},
-    "10": {"name" : "Str 5-6",  "start" :	2200,   "end" :	2430},
-    "11": {"name" : "Turn 6",   "start" :	2430,   "end" :	2580},
-    "12": {"name" : "Str 6-7",  "start" :	2580,   "end" :	2770},
-    "13": {"name" : "Turn 7",   "start" :	2770,   "end" :	2980},
-    "14": {"name" : "Str 7-8",  "start" :	2980,   "end" :	3310},
-    "15": {"name" : "Turn 8",   "start" :	3310,   "end" :	3520},
-    "16": {"name" : "Str 8-9",  "start" :	3520,   "end" :	3530},
-    "17": {"name" : "Turn 9",   "start" :	3530,   "end" :	3620},
-    "18": {"name" : "Turn 10",  "start" :	3620,   "end" :	3840},
-    "19": {"name" : "Str 10-11","start" :   3840,   "end" :	3880},	
-    "20": {"name" : "Turn 11",  "start" :	3880,   "end" :	4020},
-    "21": {"name" : "Turn 12",  "start" :	4020,   "end" :	4120},
-    "22": {"name" : "Turn 13",  "start" :	4120,   "end" :	4200},
-    "23": {"name" : "Turn 14",  "start" :	4200,   "end" :	4400},
-    "24": {"name" : "Str 14-0", "start" :	4400,   "end" :	inf}
-}
+from constants import sections, sign, physical_columns
+from race_data_extraction_display import  extract_general_data, \
+                                          display_track_summary
 
 
 #############################  INTERNAL FUNCITONS  #############################
@@ -539,108 +482,6 @@ def __add_additional_columns(file_object,
 ##############################  PUBLIC FUNCITONS  ##############################
 
 
-def display_track_summary(track_summary, laps_start_end, color : bool = False):
-    """
-    This is helper function - it is used to prepare, and return track data
-    in readable form (to be stored in file or displayed in console)
-    """
-
-    ts = ''
-
-    # line separator for clear display of data
-    if color:
-        ts += "General informaiton about data\n\n"
-    else:
-        ts += "General informaiton about data\n\n"
-
-    # display all stats except laps data (displayed separately below)
-    for stats in track_summary:
-        if stats == 'beacon_makers' or stats == 'laps_start_end':
-            continue
-        if color:
-            ts += c_pink(f"{stats.capitalize():20}") + \
-                 " : "  +  f"{track_summary[stats]}\n"
-        else:
-            ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
-
-    # line separator for clear display of data
-    if color:
-        ts += "\nLap times\n\n"
-    else:
-        ts += "\nLap times\n\n"
-
-    # display each lap times
-    for i in range(len(laps_start_end)):
-        start, end = laps_start_end[str(i + 1)].values()
-        if color:
-            ts += c_blue(f'Lap {(i + 1)}')        + ' : ' +\
-                  c_green(f'{start:08.3f}')       + ' - ' + \
-                  c_cyan(f'{end:08.3f}')          + '   =   ' +\
-                  c_green(f'{(end - start):.3f}') + '\n'
-        else:
-            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
-                  f'{(end - start):.3f}s\n'
-    
-    ts.strip()
-
-    return ts
-
-
-def extract_general_data(file_object, verbose : bool = False) -> dict:
-    """
-    This funciton is responsible for removal of first rows in data which are
-    responsible for storage of additional informaiton such as car model,
-    track, name, distance. Those data are removed from the initial table but 
-    can later be accessed via external variable
-    """
-
-    # Read all information which are stored in the beginning of the file
-    track_summary = {
-    'format' : file_object[0][1],
-    'venue' : file_object[1][1],
-    'vehicle' : file_object[2][1],
-    'driver' : file_object[3][1],
-    'device' : file_object[4][1],
-    'comment' : file_object[5][1],
-    'log_date' : file_object[6][1],
-    'log_time' : file_object[7][1],
-    'start_time' : file_object[7][5],
-    'sample_rate' : file_object[8][1],
-    'end_time' : file_object[8][5],
-    'duration' : file_object[9][1],
-    'range' : file_object[10][1],
-    'beacon_makers' : ...
-    }
-
-    # Add beacon makers in readable form (list of floats)
-    beacon_makers = file_object[11][1].strip().split(" ")
-    beacon_makers = [float(i) for i in beacon_makers]
-    track_summary['beacon_makers'] = beacon_makers
-
-    # Prepare dict of dicts which contains start end end of each lap
-    # Lap 1 : 0.000 - 107.154
-    # Lap 2 : 107.154 - 446.093
-    # etc.
-    laps_start_end = {}
-    tmp_start = float(track_summary['start_time'])
-    for i in range(len(beacon_makers)):
-        laps_start_end[str(i + 1)] = {"start" : tmp_start, 
-                                      "end" : beacon_makers[i]}
-        tmp_start = beacon_makers[i]
-    else:
-        if float(track_summary['end_time']) > float(beacon_makers[-1]):
-            laps_start_end[str(i + 2)] = {"start" : beacon_makers[i], 
-                                    "end" : float(track_summary['end_time'])}
-    track_summary['laps_start_end'] = laps_start_end
-
-    # Display informaiton in the console if 'verbose' param set to 'True'
-
-    if verbose:
-        print(display_track_summary(track_summary, laps_start_end, True))
-        
-    return track_summary
-
-
 def prepare_data(file_object, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
@@ -764,6 +605,7 @@ def save_data_best_sections(path, data, title):
              str(data[section]["best_time"]).replace(".",",")])
     f.close()
 
+
 def save_std_for_each_section(path, data, title):
     
     f = open(f"{path}{sign}{title}.csv","w")
@@ -777,6 +619,7 @@ def save_std_for_each_section(path, data, title):
              str(data[section]["std avg"]).replace(".",","),
              str(data[section]["std time"]).replace(".",",")])
     f.close()
+
 
 if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
