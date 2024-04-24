@@ -461,7 +461,6 @@ def save_data_csv(file_object,
         data_file.write(json.dumps(race_data))
 
 
-
 if __name__ == "__main__":
     clean()
     print("This file contains functios, not CLI program :)\n")
