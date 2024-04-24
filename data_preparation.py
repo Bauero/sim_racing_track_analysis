@@ -6,6 +6,7 @@ it can be run by external program
 
 
 import csv
+import json
 from math import inf
 from additional_commands import c_blue, c_green, c_pink, c_cyan, c_yellow, clean
 from constants import sections, sign, physical_columns
@@ -438,24 +439,27 @@ def prepare_data(file_path, verbose : bool = False,
 
 
 def save_data_csv(file_object,
+                  race_data,
                   log_date : str,
                   log_time : str, 
                   special_path : str):
     """
     This function is responsible for storage of modified file into a new file
     """
+    
+    track_data = f"{log_date}_{log_time}_cleaned_data.csv"
+    data_summary = f"{log_date}_{log_time}_race_data.json"
+
     if special_path:
-      file_path = f"{special_path}{sign}{log_date}_{log_time}_cleaned_data.csv"
-    else:
-      file_path = f"{log_date}_{log_time}_cleaned_data.csv"
+        track_data = f"{special_path}{sign}{track_data}"
+        data_summary = f"{special_path}{sign}{data_summary}"
 
+    with open(track_data,'w') as track_file:
+        csv.writer(track_file).writerows(file_object)
 
-    new_file = open(file_path,'w')
+    with open(data_summary, 'w') as data_file:
+        data_file.write(json.dumps(race_data))
 
-    csvwriter = csv.writer(new_file)
-    csvwriter.writerows(file_object)
-
-    new_file.close()
 
 
 if __name__ == "__main__":
