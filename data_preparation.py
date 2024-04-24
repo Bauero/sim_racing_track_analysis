@@ -8,9 +8,9 @@ it can be run by external program
 import csv
 import json
 from math import inf
-from additional_commands import c_blue, c_green, c_pink, c_cyan, c_yellow, clean
-from constants import sections, sign, physical_columns
-from race_data_extraction_display import  extract_general_data
+from constants import sections, sign
+from race_data_extraction_display import extract_general_data
+from additional_commands import c_blue, c_green, c_cyan, c_yellow, clean
 
 
 #############################  INTERNAL FUNCITONS  #############################
@@ -83,24 +83,25 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
     return file_object
 
 
-def __remove_unnecessary_colums(file_object, custom_to_remove : list, 
+def __remove_unnecessary_colums(file_object, 
+                                columns_to_remove : list, 
                                 verbose : bool = False):
     """
     This function allows to remove columns from data
     """    
 
-    if not custom_to_remove:
+    if not columns_to_remove:
         if verbose:
             print(c_yellow("No colums to remove - data left untouched"))
         return file_object        
 
-    columns_to_remove = [file_object[0].index(i) for i in custom_to_remove]
+    columns_to_remove = [file_object[0].index(i) for i in columns_to_remove]
 
     if verbose:
         print(c_yellow("The following columns will be removed:"))
-        for i in range(len(physical_columns)):
-            print(c_yellow(f"Column {columns_to_remove[i]}") + " : " +\
-                  c_cyan(f"'{physical_columns[i]}'"))
+        for i in range(len(columns_to_remove)):
+            print(c_yellow(f"Column {i}") + " : " +\
+                  c_cyan(f"'{columns_to_remove[i]}'"))
 
     columns_to_remove = sorted(columns_to_remove, reverse=True)
 
@@ -108,9 +109,8 @@ def __remove_unnecessary_colums(file_object, custom_to_remove : list,
         for col in columns_to_remove:
             file_object[row].pop(col)
 
-
     if verbose:
-        print(c_green(f"\nSuccessfully removed {len(physical_columns)} columns"))
+        print(c_green(f"\nSuccessfully removed {len(columns_to_remove)} columns"))
 
     return file_object
 
@@ -367,7 +367,7 @@ def __add_additional_columns(file_object,
 def prepare_data(file_path, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
-                 column_remove_list : list = physical_columns,
+                 column_remove_list : list = [],
                  delim : str = ','):
     """
     This is general function which is responsible for data preparation
