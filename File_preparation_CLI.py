@@ -8,6 +8,7 @@ from additional_commands import *
 from tkinter import Tk
 from tkinter import filedialog
 from additional_commands import clean
+from constants import physical_columns
 from race_data_extraction_display import display_track_summary
 
 
