@@ -8,10 +8,10 @@ from data_preparation import *
 from additional_commands import *
 from tkinter import Tk
 from tkinter import filedialog
+from additional_commands import clean
 
 
-def __clean():
-    os.system('cls' if os.name == 'nt' else 'clear')
+#############################  INTERNAL FUNCITONS  #############################
 
 
 def __display_path(new_file, title):
@@ -174,22 +174,22 @@ def __interactive_config(file_path):
         o = o.strip().lower()
 
         if o:
-            __clean()
+            clean()
             match o:
                 case "1":
                     mk_file = __ask_menu(conf_mkfile, mk_file)
-                    __clean()
+                    clean()
                     print(c_pink("After change:\n"))
                     conf_mkfile()
                     print("\n")
                 case "2":
                     cov_val_fl = __ask_menu(conf_cvf, cov_val_fl)
-                    __clean()
+                    clean()
                     print(c_pink("After change:\n"))
                     conf_cvf()
                 case "3":
                     h_cod_rem = __ask_menu(conf_hcr, h_cod_rem)
-                    __clean()
+                    clean()
                     print(c_pink("After change:\n"))
                     conf_hcr()
                 case "4":
@@ -211,7 +211,7 @@ def __interactive_config(file_path):
                                 delimiter = print("\nEnter new separator >>> ", 
                                             end="")
                                 break
-                    __clean()
+                    clean()
                     print(c_pink("After change:\n"))
                     conf_del()
                 case "5":
@@ -240,7 +240,7 @@ def __interactive_config(file_path):
                                 ans = input(r"Do you want to try again? [y\N]" +
                                             "\n>>> ").strip().lower()
                                 if ans == "y":
-                                    __clean()
+                                    clean()
                                     continue
                                 else:
                                     break
@@ -262,29 +262,29 @@ def __interactive_config(file_path):
                                     col_to_rem = tmp
                                     break
                             break
-                    __clean()
+                    clean()
                     print(c_pink("After change:\n"))
                     conf_ctr()                           
                 case "a":
-                    __clean()
+                    clean()
                     print(c_yellow("Current config after changes\n\n"))
                     h()
                 case "h":
-                    __clean()
+                    clean()
                     print(__interactive_config.__doc__[125:], end = "")
                     input("\n\nPress Enter to continue >>> ")
-                    __clean()
+                    clean()
                     print(c_yellow("Current config after changes\n\n"))
                     h()
                 case "c":
-                    __clean()
+                    clean()
                     a = input("Do you want to cancel process and go to main " +
                               f"menu? [{c_red('y')} \\ {c_green('N')}]" + 
                               "\n\n>>> ").strip().lower()
                     if a == "y":
                         return None
                     else:
-                        __clean()
+                        clean()
                         h()
         else:
             confimed = True
@@ -292,7 +292,7 @@ def __interactive_config(file_path):
     return mk_file, cov_val_fl, h_cod_rem, delimiter, col_to_rem
 
 
-def multiple_file_processing(data_to_process,
+def __multiple_file_processing(data_to_process,
                                mk_file : bool,
                                cov_val_fl : bool,
                                h_cod_rem : bool, 
@@ -334,13 +334,11 @@ def multiple_file_processing(data_to_process,
                     f"{file_name}"
             file = open(full_csv_file_path)
             csvreader = list(csv.reader(file, delimiter=delim))
-            values = prepare_data(csvreader, 
-                                    v, 
-                                    cov_val_fl, 
-                                    h_cod_rem, 
-                                    col_to_rem)
-            race_data, processed_file, data_all_laps, data_for_best_lap, \
-                best_time_section, std_of_variables  = values
+            race_data, processed_file = prepare_data(csvreader, 
+                                                     v, 
+                                                     cov_val_fl, 
+                                                     h_cod_rem, 
+                                                     col_to_rem)
             
             time, date = race_data["log_time"], race_data["log_date"]
 
@@ -354,16 +352,6 @@ def multiple_file_processing(data_to_process,
 
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-
-            save_laps_section_all_laps(save_dir, data_all_laps, 
-                                        f"{date}_{time}_all_laps")
-            save_laps_section_all_laps(save_dir, data_for_best_lap, 
-                                        f"{date}_{time}_best_lap")
-            save_data_best_sections(save_dir, best_time_section, 
-                                        f"{date}_{time}_best_section")
-            save_std_for_each_section(save_dir, std_of_variables,
-                                      f"{date}_{time}_std_each_section")
-
 
             if mk_file:
                 txt_file_name = f"{date}_{time}_file_summary.txt"
@@ -407,7 +395,7 @@ def multiple_file_processing(data_to_process,
             if odp == "n": break
 
 
-def option1(v : bool):
+def __option1(v : bool):
     """
     This option is ment to allow to process one file individually. 
     
@@ -421,14 +409,14 @@ def option1(v : bool):
     file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
     dir_path = sign.join(file_path.split(sign)[0:-1])
 
-    __clean()
+    clean()
 
     ans = __interactive_config(file_path if v else '')
     if ans == None: return
 
     mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
 
-    __clean()
+    clean()
 
     print(c_green("Configutraiton saved !\n"))
     ans = input(
@@ -440,7 +428,7 @@ def option1(v : bool):
         Tk().withdraw()
         dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
 
-    __clean()
+    clean()
 
     print("Processing file ...\n")
 
@@ -450,13 +438,11 @@ def option1(v : bool):
     race_data = processed_file = None
 
     try:
-        values = prepare_data(csvreader, 
-                              v, 
-                              cov_val_fl, 
-                              h_cod_rem, 
-                              col_to_rem)
-        race_data, processed_file, data_all_laps, data_for_best_lap, \
-            best_time_section, std_of_variables = values
+        race_data, processed_file = prepare_data(csvreader, 
+                                                 v, 
+                                                 cov_val_fl, 
+                                                 h_cod_rem, 
+                                                 col_to_rem)
     except KeyError as e:
         print(c_red(f"Operation failed: {e}"))
         input("\nPress Enter to go back to main menu >>> ")
@@ -471,15 +457,6 @@ def option1(v : bool):
         dir_path = f"{dir_path}{sign}data_information_{date}_{time}"
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
-
-        save_laps_section_all_laps(dir_path, data_all_laps, 
-                                   f"{date}_{time}_all_laps")
-        save_laps_section_all_laps(dir_path, data_for_best_lap, 
-                                   f"{date}_{time}_best_lap")
-        save_data_best_sections(dir_path, best_time_section, 
-                                f"{date}_{time}_best_section")
-        save_std_for_each_section(dir_path, std_of_variables,
-                                f"{date}_{time}_std_each_section")
 
         if mk_file:
             file_name = f"{date}_{time}_data_information"
@@ -510,7 +487,7 @@ def option1(v : bool):
     input(c_green("Operation finished") + "\n\nPress Enter to continue >>> ")
 
 
-def option2(v : bool):
+def __option2(v : bool):
     """
     This option is ment to process multiple files easier than option 1.
 
@@ -521,7 +498,7 @@ def option2(v : bool):
     preferred if all files would have the same settings
     """
     
-    __clean()
+    clean()
     mode = ''
 
     def h():
@@ -543,32 +520,32 @@ def option2(v : bool):
         elif odp == "g":
             mode = "g" ; break
         elif odp == "h":
-            __clean()
-            print(option2.__doc__, end = '')
+            clean()
+            print(__option2.__doc__, end = '')
             input("\nPress Enter to continue >>> ")
-            __clean()
+            clean()
             h()
         elif odp == "c":
-            __clean()
+            clean()
             a = input("Do you want to cancel process and go to main " +
                         f"menu? [{c_red('y')} \\ {c_green('N')}]" + 
                         "\n\n>>> ").strip().lower()
             if a == "y":
                 return None
             else:
-                __clean()
+                clean()
                 h()
         else:
             print(c_red("\nInvalid option !!!"))
 
-    __clean()
+    clean()
 
     match mode:
         case "i":
             while True:
-                __clean()
-                option1(v)
-                __clean()
+                clean()
+                __option1(v)
+                clean()
                 a = input(
                     "File was processed. Write 'c' + Enter to cancel, and go " +
                     "back to main menu\nor press Enter to continue \n\n>>> "
@@ -600,9 +577,9 @@ def option2(v : bool):
 
                 sum_of_sizes += size
 
-            __clean()
+            clean()
 
-            multiple_file_processing(data_to_process,
+            __multiple_file_processing(data_to_process,
                                      mk_file,
                                      cov_val_fl, 
                                      h_cod_rem, 
@@ -618,7 +595,7 @@ def option2(v : bool):
                   "\n\nPress Enter to go back to the menu >>> ")
 
 
-def option3(v : bool):
+def __option3(v : bool):
     """
     This option is for processing files in bulk
 
@@ -638,11 +615,11 @@ def option3(v : bool):
     directory_choosen = ""
 
     while not folder_choosen:
-        __clean()
+        clean()
         folder_choosen = True    
         Tk().withdraw()
         directory = filedialog.askdirectory(mustexist=True)
-        __clean
+        clean
 
         if not directory:
             print(c_red("No directory was choosen !!!"))
@@ -678,7 +655,7 @@ def option3(v : bool):
             files_detected = files
             directory_choosen = directory
 
-    __clean()
+    clean()
 
     ans = __interactive_config(directory_choosen)
 
@@ -687,7 +664,7 @@ def option3(v : bool):
     mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
         
 
-    __clean()
+    clean()
 
     data_to_process = []
     processed_size = 0
@@ -705,9 +682,9 @@ def option3(v : bool):
     directory_choosen = directory_choosen + sign + "processed_data"
     os.mkdir(directory_choosen)
 
-    __clean()
+    clean()
 
-    multiple_file_processing(data_to_process,
+    __multiple_file_processing(data_to_process,
                              mk_file,
                              cov_val_fl,
                              h_cod_rem, 
@@ -721,7 +698,10 @@ def option3(v : bool):
     print("#" * 80 + "\n")
     input(c_green("\nFile processing finished\n\n") + 
           "Press Enter to go back to the menu >>> ")
-                
+ 
+
+##############################  PUBLIC FUNCITONS  ##############################               
+
 
 def menu():
     """
@@ -730,7 +710,7 @@ def menu():
     """
 
     verbose = False
-    __clean()
+    clean()
     print(c_pink("Welcome to data preparation program :)\n\n"))
 
     def hint():
@@ -762,20 +742,20 @@ def menu():
             print(c_red("\nGiven value is not an option !!!"))
             continue
         else:
-            __clean()
+            clean()
             match odp:
                 case "1":
-                    option1(verbose)
+                    __option1(verbose)
                     tmp = True
-                    __clean()
+                    clean()
                 case "2":
-                    option2(verbose)
+                    __option2(verbose)
                     tmp = True
-                    __clean()
+                    clean()
                 case "3":
-                    option3(verbose)
+                    __option3(verbose)
                     tmp = True
-                    __clean()
+                    clean()
                 case "4":
                     verbose = not verbose
                     if verbose:
@@ -791,10 +771,10 @@ def menu():
                 case "5":
                     break
                 case "h":
-                    __clean()
+                    clean()
                     tmp = True
 
-    __clean()
+    clean()
     exit()
 
 

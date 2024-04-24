@@ -5,13 +5,11 @@ it can be run by external program
 """
 
 
-import os
 import csv
 from math import inf
-from additional_commands import c_blue, c_green, c_pink, c_cyan, c_yellow
+from additional_commands import c_blue, c_green, c_pink, c_cyan, c_yellow, clean
 from constants import sections, sign, physical_columns
-from race_data_extraction_display import  extract_general_data, \
-                                          display_track_summary
+from race_data_extraction_display import  extract_general_data
 
 
 #############################  INTERNAL FUNCITONS  #############################
@@ -274,21 +272,17 @@ def __add_time_distance_on_lap(file_object,
     return file_object
 
 
-def __add_sections_and_analyze(file_object,
+def __add_sections(file_object,
                                lap_info,
                                values_in_float,
                                verbose):
     """
-    This funcition is responible for adding section columns after 'LAP_BEACON' 
-    and measuring other statistics, like min, max and average speed on each
-    section, and for best section accross all laps. Additionally, function
-    returns also section data, for best lap
+    This funcition is responible for adding section columns after 'LAP_BEACON'
     """
 
 
     LAP_BEACON = file_object[0].index('LAP_BEACON')
     SECTION = LAP_BEACON + 1
-    TIME = file_object[0].index('Time')
     DISTANCE_ON_LAP = file_object[0].index('Distance_on_lap')
 
     current_section = "1"
@@ -296,147 +290,39 @@ def __add_sections_and_analyze(file_object,
     section_end = sections[current_section]["end"]
     file_object[0].insert(SECTION,"Section")
 
-    data_all_laps = { "1" : {  "1" : {}  } }
-
-    best_time_section = {k : {"best_time" : inf} for k in sections.keys()}
-    time_per_lap = {
-        k : lap_info[k]["end"] - lap_info[k]["start"] for k in lap_info.keys()
-    }
-
-    # Lists that holds standard deviation for specific stats
-    # x = ["std max", "std min", "std avg", "std time"]
-    # std_of_variables = {k : {d : [] for d in x} for k in sections.keys()}
-
-    std_of_variables = dict()
-    for sec in sections.keys():
-        std_of_variables[sec] = { 
-            "std max": [],
-            "std min": [],
-            "std avg": [], 
-            "std time": []
-        }
-                              
-    best_time_lap = sorted(list(time_per_lap.items()), key = lambda x : x[1])[0]
-
-    speeds_in_section = []
-    sp_col = file_object[0].index("SPEED")-1
-    start_time_section = 0
-
-    def update_speeds():
-        
-        nonlocal start_time_section
-        nonlocal speeds_in_section
-        nonlocal current_section
-        nonlocal current_lap
-
-        section_max = max(speeds_in_section)
-        section_min = min(speeds_in_section)
-        section_avg = round(sum(speeds_in_section) / len(speeds_in_section), 2)
-
-        scl = str(current_lap)
-
-        data_all_laps[scl][current_section]["max"] = section_max
-        data_all_laps[scl][current_section]["min"] = section_min
-        data_all_laps[scl][current_section]["avg"] = section_avg
-
-        speeds_in_section = []
-
-        if values_in_float:
-            time_in_row = round((float(file_object[row][TIME]) + \
-                            float(file_object[row-1][TIME])) / 2, 4)
-            time_diff = round(time_in_row - start_time_section, 4)
-        else:
-            t1 = float(file_object[row][TIME].replace(",","."))
-            t2 = float(file_object[row-1][TIME].replace(",","."))
-            time_in_row = round((t1+t2)/2, 4)
-            time_diff = round(time_in_row - start_time_section, 4)
-        
-        data_all_laps[scl][current_section]["time"] = time_diff
-        start_time_section = time_in_row
-
-        if time_diff < best_time_section[current_section]["best_time"]:
-            best_time_section[current_section]["best_time"] = time_diff
-            best_time_section[current_section]["max"] = section_max
-            best_time_section[current_section]["min"] = section_min
-            best_time_section[current_section]["avg"] = section_avg
-            best_time_section[current_section]["Lap"] = current_lap
-        
-        # Add section stats to appriopriate list
-        std_of_variables[current_section]["std max"].append(section_max)
-        std_of_variables[current_section]["std min"].append(section_min)
-        std_of_variables[current_section]["std avg"].append(section_avg)
-        std_of_variables[current_section]["std time"].append(time_diff)
-
-    if verbose:
-        print(c_blue("\nAdding sections for lap ") + c_yellow('1'))
+    if verbose: print(c_blue("\nAdding sections for lap ") + c_yellow('1'))
 
     for row in range(1, len(file_object)):
         if values_in_float:
             dist_on_lap = float(file_object[row][DISTANCE_ON_LAP])
-            speed = float(file_object[row][sp_col])
             lap_in_row = file_object[row][LAP_BEACON]
         else:
             dist_on_lap = float(
                 file_object[row][DISTANCE_ON_LAP].replace(",","."))
-            speed = float(file_object[row][sp_col].replace(",","."))
             lap_in_row = float(file_object[row][LAP_BEACON].replace(",","."))
         
         # For every new lap
-
         if int(lap_in_row) > current_lap:
-
-            update_speeds()
-
             cls = file_object[row][LAP_BEACON]
-            if not values_in_float: 
-                cls = float(cls.replace(",","."))
+            if not values_in_float: cls = float(cls.replace(",","."))
             current_lap = int(cls)
-
             current_section = "1"
             section_end = sections[current_section]["end"]
-
-            data_all_laps[str(current_lap)] = {
-                "1" : {}
-            }
 
             if verbose:
                 print(c_blue("Adding sections for lap ") +\
                       c_yellow(f"{current_lap}"))
 
         # For every new section
-
         if dist_on_lap > section_end:
-
-            update_speeds()
-
             current_section = str(int(current_section) + 1)
             section_end = sections[current_section]["end"]
 
-            data_all_laps[str(current_lap)][current_section] = {}
-
-        speeds_in_section.append(speed)
         file_object[row].insert(SECTION,
                                 current_section if not values_in_float else \
                                 int(current_section))
-    else:
-        update_speeds()
-
-    for sec in sections.keys():
-        for std in std_of_variables[sec]:
-            s = std_of_variables[sec][std]
-            l = len(s)
-            section_average = round(sum(s)/l, 2)
-            sum_deviations = 0
-            std_dev = 0
-            if l > 1:
-                for lap in s:
-                    sum_deviations+=(lap - section_average)**2
-                std_dev = (sum_deviations / (l-1))**0.5
-            std_of_variables[sec][std]= round(std_dev, 2)
         
-    data_for_best_lap = {best_time_lap[0] : data_all_laps[best_time_lap[0]]}
-
-    return file_object, data_all_laps, data_for_best_lap, best_time_section, std_of_variables
+    return file_object
 
 
 def __add_additional_columns(file_object,
@@ -458,25 +344,20 @@ def __add_additional_columns(file_object,
     # Adding additional columsn - Time_on_lap and Distance_on_lap
 
     file_object = __add_time_distance_on_lap(file_object, 
-                                          lap_info, 
-                                          values_in_float,
-                                          verbose)
+                                             lap_info, 
+                                             values_in_float,
+                                             verbose)
 
     # Adding column to indicate which section is driver in
 
-    values = __add_sections_and_analyze(file_object,
-                                        lap_info,
-                                        values_in_float,
-                                        verbose)
+    file_object = __add_sections(file_object,
+                                 lap_info,
+                                 values_in_float,
+                                 verbose)
 
-    file_object, data_all_laps, data_for_best_lap, best_time_section, \
-        std_of_variables = values
+    if verbose: print(c_green("\nAdding new columns completed\n"))
 
-    if verbose:
-        print(c_green("\nAdding new columns completed\n"))
-
-    return file_object, data_all_laps, data_for_best_lap, best_time_section, \
-           std_of_variables
+    return file_object
 
 
 ##############################  PUBLIC FUNCITONS  ##############################
@@ -542,26 +423,25 @@ def prepare_data(file_object, verbose : bool = False,
     if verbose:
         print("\n" + "-" * 80 + "\n\nAdding additional data\n")
 
-    values = __add_additional_columns(file_object,
+    file_object = __add_additional_columns(file_object,
                                      race_info['laps_start_end'], 
                                      convert_values_with_float_conversion,
                                      verbose)
-    file_object, data_all_laps, data_for_best_lap, best_time_section, \
-        std_of_variables = values
     
-    return race_info, file_object, data_all_laps, data_for_best_lap, \
-           best_time_section, std_of_variables           
+    return race_info, file_object        
 
 
-def save_data_csv(file_object, log_date : str, log_time : str, 
-                              special_path : str):
+def save_data_csv(file_object,
+                  log_date : str,
+                  log_time : str, 
+                  special_path : str):
     """
     This function is responsible for storage of modified file into a new file
     """
     if special_path:
-        file_path = f"{special_path}{sign}{log_date}_{log_time}_cleaned_data.csv"
+      file_path = f"{special_path}{sign}{log_date}_{log_time}_cleaned_data.csv"
     else:
-        file_path = f"{log_date}_{log_time}_cleaned_data.csv"
+      file_path = f"{log_date}_{log_time}_cleaned_data.csv"
 
 
     new_file = open(file_path,'w')
@@ -572,57 +452,8 @@ def save_data_csv(file_object, log_date : str, log_time : str,
     new_file.close()
 
 
-def save_laps_section_all_laps(path, data, title):
-    
-    f = open(f"{path}{sign}{title}.csv","w")
-    file = csv.writer(f)
-    file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed","Time"])
-    for lap in data:
-        for section in data[lap]:
-            file.writerow(
-                [lap,
-                section,
-                str(data[lap][section]["max"]).replace(".",","),
-                str(data[lap][section]["min"]).replace(".",","),
-                str(data[lap][section]["avg"]).replace(".",","),
-                str(data[lap][section]["time"]).replace(".",",")])
-    f.close()
-
-
-def save_data_best_sections(path, data, title):
-    
-    f = open(f"{path}{sign}{title}.csv","w")
-    file = csv.writer(f)
-    file.writerow(["Lap","Section","Max Speed","Min Speed","Avg Speed", \
-                   "Best Time"])
-    for section in data:
-        file.writerow(
-            [str(data[section]["Lap"]).replace(".",","),
-             section,
-             str(data[section]["max"]).replace(".",","),
-             str(data[section]["min"]).replace(".",","),
-             str(data[section]["avg"]).replace(".",","),
-             str(data[section]["best_time"]).replace(".",",")])
-    f.close()
-
-
-def save_std_for_each_section(path, data, title):
-    
-    f = open(f"{path}{sign}{title}.csv","w")
-    file = csv.writer(f)
-    file.writerow(["Section","Std Max", "Std Min", "Std Avg", "Std Time"])
-    for section in data:
-        file.writerow(
-            [section,
-             str(data[section]["std max"]).replace(".",","),
-             str(data[section]["std min"]).replace(".",","),
-             str(data[section]["std avg"]).replace(".",","),
-             str(data[section]["std time"]).replace(".",",")])
-    f.close()
-
-
 if __name__ == "__main__":
-    os.system('cls' if os.name == 'nt' else 'clear')
+    clean()
     print("This file contains functios, not CLI program :)\n")
     print("To open CLI program open run:\n")
     print(f"'python .{sign}File_preparation_CLI.py' or")
