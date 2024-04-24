@@ -292,7 +292,16 @@ def __interactive_config(file_path):
     return mk_file, cov_val_fl, h_cod_rem, delimiter, col_to_rem
 
 
-def multiple_file_processing(data_to_process,
+def __format_date_time(race_data):
+    time, date = race_data["log_time"], race_data["log_date"]
+
+    time = time.replace("/","-").replace("\\","-").replace(":","-")
+    date = date.replace(".","-").replace("/","-")
+
+    return time, date
+
+
+def __multiple_file_processing(data_to_process,
                                mk_file : bool,
                                cov_val_fl : bool,
                                h_cod_rem : bool, 
@@ -342,10 +351,7 @@ def multiple_file_processing(data_to_process,
             if race_data == None:
                 raise FileNotFoundError
 
-            time, date = race_data["log_time"], race_data["log_date"]
-
-            time = time.replace("/","-").replace("\\","-").replace(":","-")
-            date = date.replace(".","-").replace("/","-")
+            time, date = __format_date_time(race_data)
 
             # save_dir =  f"{save_dir}{sign}data_information_{date}_{time}"
             save_dir =  f"{save_dir}" + \
@@ -459,10 +465,7 @@ def __option1(v : bool):
         return
     
     try:
-        time, date = race_data["log_time"], race_data["log_date"]
-
-        time = time.replace("/","-").replace("\\","-").replace(":","-")
-        date = date.replace(".","-").replace("/","-")
+        time, date = __format_date_time(race_data)
 
         dir_path = f"{dir_path}{sign}data_information_{date}_{time}"
         if not os.path.exists(dir_path):
@@ -588,7 +591,7 @@ def __option2(v : bool):
 
             clean()
 
-            multiple_file_processing(data_to_process,
+            __multiple_file_processing(data_to_process,
                                      mk_file,
                                      cov_val_fl, 
                                      h_cod_rem, 
@@ -672,7 +675,6 @@ def __option3(v : bool):
 
     mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
         
-
     clean()
 
     data_to_process = []
@@ -693,7 +695,7 @@ def __option3(v : bool):
 
     clean()
 
-    multiple_file_processing(data_to_process,
+    __multiple_file_processing(data_to_process,
                              mk_file,
                              cov_val_fl,
                              h_cod_rem, 
