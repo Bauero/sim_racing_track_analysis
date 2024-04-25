@@ -163,3 +163,4 @@ cython_debug/
 .all_laps_motec.csv
 Icon\r
 Icon
+.vscode/settings.json
