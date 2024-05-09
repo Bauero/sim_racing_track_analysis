@@ -65,6 +65,21 @@ def __ask_menu(func, value):
     return value
 
 
+def __ask_for_new_place_to_save(dir_path):
+    print(c_green("Configutraiton saved !\n"))
+    ans = input(
+        c_yellow("Where do you want to save output files?") +
+        "\n(By default, it's the same place from where the source file is from)"
+        "\nPress 'c' + Enter to change | Enter to " + 
+        "continue\n>>> ").strip().lower()
+
+    if ans == 'c':
+        Tk().withdraw()
+        dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
+
+    return dir_path
+
+
 def __ask_remove_bad_laps(processed_file, race_data):
 
     print("Those are laps in our data")
@@ -515,15 +530,7 @@ def __option1(v : bool):
 
     clean()
 
-    print(c_green("Configutraiton saved !\n"))
-    ans = input(
-        c_yellow("Do you want to change place where files will be saved?") +
-        "\nPress 'y' + Enter to change | Enter to " + 
-        "continue\n>>> ").strip().lower()
-    
-    if ans == 'y':
-        Tk().withdraw()
-        dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
+    dir_path = __ask_for_new_place_to_save(dir_path)
 
     clean()
     
@@ -545,6 +552,7 @@ def __option1(v : bool):
         return
 
     clean()
+
     processed_file = __ask_remove_bad_laps(processed_file, race_data)
 
     try:
@@ -647,12 +655,6 @@ def __option2(v : bool):
                     )
                 if a.strip().lower() == "c": break
         case "g":
-
-            ans = __interactive_config("")
-
-            if ans == None: return
-
-            mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
                 
             Tk().withdraw()
             files = filedialog.askopenfilenames(filetypes=[("CSV","*.csv")])
@@ -674,16 +676,28 @@ def __option2(v : bool):
 
             clean()
 
+            ans = __interactive_config("")
+            if ans == None: return
+            mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
+
+            clean()
+
+            # It takes last value processed in loop above, as the varaible is
+            # stil in the memory - that's how it works
+            save_dir = __ask_for_new_place_to_save(file_path)
+
+            clean()
+
             __multiple_file_processing(data_to_process,
                                      mk_file,
                                      cov_val_fl, 
                                      h_cod_rem, 
-                                     col_to_rem, 
+                                     col_to_rem,
                                      processed_size, 
                                      sum_of_sizes, 
                                      v,
                                      delim,
-                                     file_path)
+                                     save_dir)
             
             print("#" * 80 + "\n")
             input(c_green("File processing finished") + 
@@ -753,9 +767,7 @@ def __option3(v : bool):
     clean()
 
     ans = __interactive_config(directory_choosen)
-
     if ans == None: return
-
     mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
         
     clean()
@@ -773,10 +785,15 @@ def __option3(v : bool):
         })
         sum_of_sizes += size
 
-    directory_choosen = directory_choosen + sign + "processed_data"
-    os.mkdir(directory_choosen)
 
     clean()
+
+    save_dir = __ask_for_new_place_to_save(directory_choosen)
+
+    clean()
+
+    save_dir = save_dir + sign + "processed_data"
+    os.mkdir(save_dir)
 
     __multiple_file_processing(data_to_process,
                              mk_file,
@@ -787,7 +804,7 @@ def __option3(v : bool):
                              sum_of_sizes,
                              v,
                              delim,
-                             directory_choosen)
+                             save_dir)
     
     print("#" * 80 + "\n")
     input(c_green("\nFile processing finished\n\n") + 
