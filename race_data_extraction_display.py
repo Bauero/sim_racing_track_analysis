@@ -7,6 +7,31 @@ pandas library
 from additional_commands import c_blue, c_green, c_pink, c_cyan
 
 
+def display_laps_summary(laps_start_end, color : bool = False):
+
+    ts = ""
+
+    # line separator for clear display of data
+    if color:
+        ts += c_cyan("\nLap times\n\n")
+    else:
+        ts += "\nLap times\n\n"
+
+    # display each lap times
+    for i in range(len(laps_start_end)):
+        start, end = laps_start_end[str(i + 1)].values()
+        if color:
+            ts += c_blue(f'Lap {(i + 1)}')        + ' : ' +\
+                  c_green(f'{start:08.3f}')       + ' - ' + \
+                  c_cyan(f'{end:08.3f}')          + '   =   ' +\
+                  c_green(f'{(end - start):.3f}') + '\n'
+        else:
+            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
+                  f'{(end - start):.3f}s\n'
+            
+    return ts
+
+
 def display_track_summary(track_summary, laps_start_end, color : bool = False):
     """
     This is helper function - it is used to prepare, and return track data
@@ -31,23 +56,7 @@ def display_track_summary(track_summary, laps_start_end, color : bool = False):
         else:
             ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
 
-    # line separator for clear display of data
-    if color:
-        ts += "\nLap times\n\n"
-    else:
-        ts += "\nLap times\n\n"
-
-    # display each lap times
-    for i in range(len(laps_start_end)):
-        start, end = laps_start_end[str(i + 1)].values()
-        if color:
-            ts += c_blue(f'Lap {(i + 1)}')        + ' : ' +\
-                  c_green(f'{start:08.3f}')       + ' - ' + \
-                  c_cyan(f'{end:08.3f}')          + '   =   ' +\
-                  c_green(f'{(end - start):.3f}') + '\n'
-        else:
-            ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
-                  f'{(end - start):.3f}s\n'
+    ts += display_laps_summary(laps_start_end, color)
     
     ts.strip()
 
