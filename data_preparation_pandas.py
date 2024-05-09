@@ -174,6 +174,13 @@ def prepare_data(file_path, verbose : bool = False,
     return race_info, df
 
 
+def remove_laps(df, laps : list):
+    laps = [str(l) for l in laps]
+    rows_to_remove = df[df['LAP_BEACON'].isin(laps)].index
+    df.drop(rows_to_remove, inplace=True)
+    return df
+
+
 def save_data_csv(file_object,
                      race_data,
                      log_date : str,
