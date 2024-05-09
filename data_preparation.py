@@ -438,6 +438,28 @@ def prepare_data(file_path, verbose : bool = False,
     return race_info, file_object        
 
 
+def remove_laps(file_object, laps : list):
+    """
+    This funciton allows to specify laps which should be removed, if those laps
+    contain poor results, and shouldn't be taken into account in further analysis
+    """
+
+    LAPS = file_object[0].index("LAP_BEACON")
+    title_row = file_object[0]
+
+    def laps_match(r):
+        l = r[LAPS]
+        if type(l) == str:
+            l.replace(",",".")
+        l = int(float(l))
+        return not l in laps
+
+    filtered_file = list(filter(laps_match, file_object[1:]))
+    filtered_file.insert(0, title_row)
+
+    return filtered_file
+
+
 def save_data_csv(file_object,
                   race_data,
                   log_date : str,
