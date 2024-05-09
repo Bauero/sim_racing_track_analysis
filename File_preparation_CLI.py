@@ -9,7 +9,8 @@ from tkinter import Tk
 from tkinter import filedialog
 from additional_commands import clean
 from constants import physical_columns
-from race_data_extraction_display import display_track_summary
+from race_data_extraction_display import display_track_summary, \
+                                         display_laps_summary
 
 
 #############################  INTERNAL FUNCITONS  #############################
@@ -62,6 +63,88 @@ def __ask_menu(func, value):
         elif odp == "c": break
     print(c_pink("After change:\n"))
     return value
+
+
+def __ask_remove_bad_laps(processed_file, race_data):
+
+    print("Those are laps in our data")
+    print(display_laps_summary(race_data["laps_start_end"], color = True))
+    print(c_yellow("If you want to make changes before saving you " +
+                       "can define which laps to remove\n\n") +
+              c_blue("For Example:\n") +
+              "2,3,4 -> removes laps 2, 3, 4\n"
+              "[2,5] -> removes laps from 2 to 5 => 2, 3, 4, 5\n"
+              "1+[3,5]+8 -> removes laps 1, 3, 4, 5, 8\n"
+              f"\n(press '{c_green('Enter')}'"
+              " to continue without removing any laps)")
+    
+    laps_to_remove = []
+    
+    while True:
+        ans = input("\nDefine laps to remove\n>>> ").strip()
+        if not ans:
+            print(c_red("\nAll laps will be saved ...\n"))
+            break
+        sections = ans.split("+")
+        sections = [s.strip() for s in sections]
+
+        error = False
+
+        for s in sections:
+            openP, closeP  = '[' in s, ']' in s
+            if openP != closeP:
+                print(c_red(f"Paranthesis not closed - '{s}'"))
+                error = True
+                break
+            if openP == True:
+                try:
+                    begining, end = s.split(",")
+                except ValueError as e:
+                    print(c_red(e))
+                    error = True
+                    break
+                
+                begining = begining.strip()[1:]
+                end = end.strip()[:-1]
+
+                try:
+                    begining = int(begining)
+                except Exception as e:
+                    print(c_red(f"Problem occured while converting beginning"
+                                f" of range in {s}:\n{e}"))
+                    error = True
+                    break
+                    
+                try:
+                    end = int(end)
+                except Exception as e:
+                    print(c_red(f"Problem occured while converting end"
+                                f" of range in {s}:\n{e}"))
+                    error = True
+                    break
+                
+                laps_to_remove += list(range(begining, end + 1))
+
+            else:
+                numbers = s.split(",")
+                numbers = [n.strip() for n in numbers]
+                for n in numbers:
+                    try:
+                        n = int(n)
+                    except Exception as e:
+                        print(c_red(f"{e}"))
+                        error = True
+                        break
+                    laps_to_remove.append(n)
+        
+        if not error: break
+    
+    if laps_to_remove:
+        print(c_red("\nRemoving laps: "
+                    f"{', '.join([str(a) for a in laps_to_remove])}\n"))
+        processed_file = remove_laps(processed_file, laps_to_remove)
+    
+    return processed_file
 
 
 def __interactive_config(file_path):
@@ -388,6 +471,7 @@ def __multiple_file_processing(data_to_process,
                 __display_path(full_csv_file_path, 
                             "Writing information to .csv file under location")
 
+            processed_file = __ask_remove_bad_laps(processed_file, race_data)
             save_data_csv(processed_file, race_data, date, time, save_dir)
             
             if v:
@@ -418,6 +502,7 @@ def __option1(v : bool):
 
     3. File is proceesed, and then you can return to main menu
     """
+
     Tk().withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
     dir_path = sign.join(file_path.split(sign)[0:-1])
@@ -426,7 +511,6 @@ def __option1(v : bool):
 
     ans = __interactive_config(file_path if v else '')
     if ans == None: return
-
     mk_file, cov_val_fl, h_cod_rem, delim, col_to_rem = ans
 
     clean()
@@ -442,13 +526,8 @@ def __option1(v : bool):
         dir_path = filedialog.askdirectory(mustexist=True, initialdir=dir_path)
 
     clean()
-
+    
     print("Processing file ...\n")
-
-    # csv_file = open(file_path)
-    # csvreader = list(csv.reader(csv_file, delimiter=delim))
-
-    race_data = processed_file = None
 
     try:
         race_data, processed_file = prepare_data(file_path, 
@@ -464,7 +543,10 @@ def __option1(v : bool):
         print(c_red(f"Operation failed: {e}"))
         input("\nPress Enter to go back to main menu >>> ")
         return
-    
+
+    clean()
+    processed_file = __ask_remove_bad_laps(processed_file, race_data)
+
     try:
         time, date = __format_date_time(race_data)
 
