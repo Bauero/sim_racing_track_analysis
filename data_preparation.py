@@ -8,6 +8,7 @@ it can be run by external program
 import csv
 import json
 from math import inf
+from codetiming import Timer
 from constants import sections, sign
 from race_data_extraction_display import extract_general_data
 from additional_commands import c_blue, c_green, c_cyan, c_yellow, clean
@@ -389,13 +390,15 @@ def prepare_data(file_path, verbose : bool = False,
     if verbose: print("-" * 80 + 
                       "\n\nRemoving unnecessary data from oryginal data " +
                       "(don't impact source file)\n")
-    file_object = __remove_unnecessary_rows(file_object, hard_codec_row_removal,
+    file_object = __remove_unnecessary_rows(file_object, 
+                                            hard_codec_row_removal,
                                             verbose)
     
     if verbose:
         print("\n\n" + "-" * 80 + "\n\nRemoving columns\n")
-    file_object = __remove_unnecessary_colums(file_object, column_remove_list, 
-                                             verbose)
+    file_object = __remove_unnecessary_colums(file_object,
+                                              column_remove_list, 
+                                              verbose)
 
     # Fill out missing values
 
@@ -415,11 +418,11 @@ def prepare_data(file_path, verbose : bool = False,
 
     if convert_values_with_float_conversion:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values usign " + 
-                          "float funtion")
+                        "float funtion")
         file_object = __convert_values_to_float(file_object)
     else:
         if verbose: print("\n" + "-" * 80 + "\n\nConverting values by " + 
-                          " modyfing strings")
+                        " modyfing strings")
         file_object = __even_out_comma_notation_str(file_object)
     
     if verbose:
@@ -436,6 +439,117 @@ def prepare_data(file_path, verbose : bool = False,
                                      verbose)
     
     return race_info, file_object        
+
+
+def prepare_data_combined(file_path, verbose : bool = False,
+                 convert_values_with_float_conversion : bool = False,
+                 hard_codec_row_removal : bool = True,
+                 column_remove_list : list = [],
+                 delim : str = ','):
+    """
+    This funciton does the same things as prepare_data, however it does all
+    operations in one loop, so it should run faster ...
+    
+    except, that it doesn' - most likely due to checking all rows, every time. 
+    Nevertheless, instead of 1.40s it averages around 2.15s which is a shame
+    for me and the time spend on this. Hovever, I leave it here, as a form of
+    tl;dr for ppl which prefer to see one funciton does all the work, instead of
+    jumping between calls
+
+    PS. funciton works, but I never use it as it's slower
+    """
+
+    try:
+        file = open(file_path)
+        file_object = list(csv.reader(file, delimiter=delim))
+    except FileNotFoundError:
+        return None, None
+
+    if verbose: print("-" * 80 + "\n")
+    race_info = extract_general_data(file_object, verbose)
+
+    new_file_object = []
+    current_lap = 1
+    laps_start_end = race_info["laps_start_end"]
+    current_lap_end = race_info["laps_start_end"]["1"]["end"]
+    time_offset = 0
+    distance_offset = 0
+    section = 1
+    section_end = sections[str(section)]["end"]
+
+    columns_to_avoid = []
+
+    for row in file_object:
+
+        if row == []: continue
+        if len(row) < 10: continue
+        if row[0] == "s": continue
+        if row[0] == "Time":
+            title_row = ["Time", "Time_on_lap",
+                        "Distance", "Distance_on_lap",
+                        "LAP_BEACON", "Section"]
+            for c in row[::-1]:
+                if c in set(title_row + column_remove_list):
+                    index = row.index(c)
+                    columns_to_avoid.append(index)
+                    row.pop(index)
+
+            title_row += row
+
+            new_file_object.append(title_row)
+            continue
+
+        time = row[0]
+        distance = row[1]
+        
+        # If row contains values in str
+        if type(time) == str:
+            time = round(float(time.replace(",",".")), 3)
+        if type(distance) == str:
+            distance = int(float(distance.replace(",",".")))
+
+        # Reset lap
+        if current_lap_end < time:
+            current_lap += 1
+            section = 1
+            time_offset = time
+            distance_offset = distance
+            current_lap_end = laps_start_end[str(current_lap)]["end"]
+
+        time_on_lap = round(time - time_offset, 3)
+        distance_on_lap = int(distance - distance_offset)
+
+        # Reset section
+        if distance_on_lap > section_end:
+            section += 1
+            section_end = sections[str(section)]["end"]
+
+        new_row = [time, time_on_lap, distance, distance_on_lap, 
+                current_lap, section]
+        
+        if not convert_values_with_float_conversion:
+            new_row = [str(v).replace(".",",") for v in new_row]
+        
+        for c in columns_to_avoid:
+            row.pop(c)
+
+        for element in row:
+            if element == "":
+                new_row.append(0 if convert_values_with_float_conversion 
+                                else "0")
+            elif convert_values_with_float_conversion:
+                if "," in element:
+                    new_row.append(round(float(element.replace(",",".")), 3))
+                elif "." in element:
+                    new_row.append(round(float(element), 3))
+                else:
+                    new_row.append(int(element))
+            else:
+                new_row.append(element.replace(".",","))
+        
+        new_file_object.append(new_row)
+
+    return race_info, new_file_object
 
 
 def remove_laps(file_object, laps : list):
