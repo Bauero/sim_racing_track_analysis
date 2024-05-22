@@ -36,7 +36,7 @@ def __analyze_speed_time_per_seciton(file_object, values_in_float):
     start_time_lap = 0
 
     # Define variables for storing analysis data
-    data_all_laps = { "1" : {  "1" : {}  } }
+    data_all_laps = {}
     best_time_lap = {'lap' : None , 'time' : inf}
     best_time_section = {k : {"best_time" : inf} for k in sections.keys()}
 
@@ -83,6 +83,11 @@ def __analyze_speed_time_per_seciton(file_object, values_in_float):
         section_avg = round(sum(speeds_in_section) / len(speeds_in_section), 2)
 
         scl = str(current_lap)
+        if not scl in data_all_laps.keys():
+            data_all_laps[scl] = {}
+
+        if not current_section in data_all_laps[scl].keys():
+            data_all_laps[scl][current_section] = {}
 
         # Save stats for specific lap and seciton
         data_all_laps[scl][current_section]["max"] = section_max
