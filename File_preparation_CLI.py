@@ -3,11 +3,10 @@ This file contains menu to operate data_preparation file
 """
 
 import os
-from data_preparation import *
-from additional_commands import *
 from tkinter import Tk
 from tkinter import filedialog
-from additional_commands import clean
+from data_preparation import *
+from additional_commands import *
 from constants import physical_columns
 from race_data_extraction_display import display_track_summary, \
                                          display_laps_summary
@@ -811,7 +810,7 @@ def __option3(v : bool):
           "Press Enter to go back to the menu >>> ")
  
 
-##############################  PUBLIC FUNCITONS  ##############################               
+##############################  PUBLIC FUNCITONS  ##############################
 
 
 def menu():
