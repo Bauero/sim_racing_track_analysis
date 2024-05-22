@@ -1,0 +1,16 @@
+Corr Dist (Unstretched)
+Corr Speed
+Damper Vel FL
+Damper Vel FR
+Damper Vel RL
+Damper Vel RR
+Corr Dist
+is1st
+is2nd
+is3rd
+is4th
+is5th
+is6th
+is2ndWOT
+is3rdWOT
+isWOT
