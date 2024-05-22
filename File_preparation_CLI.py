@@ -455,7 +455,7 @@ def __multiple_file_processing(data_to_process,
             # save_dir =  f"{save_dir}{sign}data_information_{date}_{time}"
             save_dir =  f"{save_dir}" + \
                         f"{sign if not save_dir.endswith(sign) else ''}" + \
-                        f"{file_name.split('.')[0]}"
+                        f"{file_name.split('.csv')[0]}"
 
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
