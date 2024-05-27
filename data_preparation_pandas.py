@@ -174,6 +174,15 @@ def prepare_data(file_path, verbose : bool = False,
     return race_info, df
 
 
+def return_formatted_date_and_time(race_data):
+    time, date = race_data["log_time"], race_data["log_date"]
+
+    time = time.replace("/","-").replace("\\","-").replace(":","-")
+    date = date.replace(".","-").replace("/","-")
+
+    return time, date
+
+
 def remove_laps(df, laps : list):
     laps = [str(l) for l in laps]
     rows_to_remove = df[df['LAP_BEACON'].isin(laps)].index

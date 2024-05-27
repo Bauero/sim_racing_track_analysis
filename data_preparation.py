@@ -441,6 +441,15 @@ def prepare_data(file_path, verbose : bool = False,
     return race_info, file_object        
 
 
+def return_formatted_date_and_time(race_data):
+    time, date = race_data["log_time"], race_data["log_date"]
+
+    time = time.replace("/","-").replace("\\","-").replace(":","-")
+    date = date.replace(".","-").replace("/","-")
+
+    return time, date
+
+
 def prepare_data_combined(file_path, verbose : bool = False,
                  convert_values_with_float_conversion : bool = False,
                  hard_codec_row_removal : bool = True,
@@ -576,15 +585,24 @@ def remove_laps(file_object, laps : list):
 
 def save_data_csv(file_object,
                   race_data,
-                  log_date : str,
-                  log_time : str, 
-                  special_path : str):
+                  special_path : str,
+                  custom_cleaned_data_filename : str = "",
+                  custom_data_summary_filename : str = ""):
     """
     This function is responsible for storage of modified file into a new file
     """
-    
-    track_data = f"{log_date}_{log_time}_cleaned_data.csv"
-    data_summary = f"{log_date}_{log_time}_race_data.json"
+    if not (custom_cleaned_data_filename or custom_data_summary_filename):
+        log_date, log_time = return_formatted_date_and_time(race_data)
+
+    if not custom_cleaned_data_filename:
+        track_data = f"{log_date}_{log_time}_cleaned_data.csv"
+    else:
+        track_data = custom_cleaned_data_filename
+
+    if not custom_data_summary_filename:
+        data_summary = f"{log_date}_{log_time}_race_data.json"
+    else:
+        data_summary = custom_cleaned_data_filename
 
     if special_path:
         track_data = f"{special_path}{sign}{track_data}"
