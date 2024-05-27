@@ -16,7 +16,7 @@ from File_preparation_CLI import *
 root=tkinter.Tk()
 root.geometry("1280x720")
 root.title("Track Record analysis")
-image_path=r"D:\portofolio Miclaus Stefan Eduard\Project\12-5-scaled-1920x1080.png"
+image_path=r"12-5-scaled-1920x1080.png"
 
 bg_image=PhotoImage(file=image_path)
 bg_image_set=tkinter.Label(root, image=bg_image)
