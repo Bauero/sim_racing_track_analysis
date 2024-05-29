@@ -191,13 +191,23 @@ def remove_laps(df, laps : list):
 
 
 def save_data_csv(file_object,
-                     race_data,
-                     log_date : str,
-                     log_time : str, 
-                     special_path : str):
+                  race_data,
+                  special_path : str,
+                  custom_cleaned_data_filename : str = "",
+                  custom_data_summary_filename : str = ""):
     
-    track_data = f"{log_date}_{log_time}_cleaned_data.csv"
-    data_summary = f"{log_date}_{log_time}_race_data.json"
+    if not (custom_cleaned_data_filename or custom_data_summary_filename):
+        log_date, log_time = return_formatted_date_and_time(race_data)
+
+    if not custom_cleaned_data_filename:
+        track_data = f"{log_date}_{log_time}_cleaned_data.csv"
+    else:
+        track_data = custom_cleaned_data_filename
+
+    if not custom_data_summary_filename:
+        data_summary = f"{log_date}_{log_time}_race_data.json"
+    else:
+        data_summary = custom_cleaned_data_filename
 
     if special_path:
         track_data = f"{special_path}{sign}{track_data}"
