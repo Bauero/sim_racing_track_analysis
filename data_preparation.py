@@ -7,8 +7,6 @@ it can be run by external program
 
 import csv
 import json
-from math import inf
-from codetiming import Timer
 from constants import sections, sign
 from race_data_extraction_display import extract_general_data
 from additional_commands import c_blue, c_green, c_cyan, c_yellow, clean
