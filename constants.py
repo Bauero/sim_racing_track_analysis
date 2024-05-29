@@ -1,7 +1,6 @@
-from os import name
 from math import inf
 
-sign = '\\' if name == 'nt' else '/'
+sign = '/' # '\\' if name == 'nt' else '/'
 
 sections = {
     "1"	: {"name" : "Str 1",        "start" :   0,      "end" :	670},
