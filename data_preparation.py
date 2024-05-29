@@ -584,6 +584,7 @@ def remove_laps(file_object, laps : list):
 def save_data_csv(file_object,
                   race_data,
                   special_path : str,
+                  save_to_excel_format : bool = False,
                   custom_cleaned_data_filename : str = "",
                   custom_data_summary_filename : str = ""):
     """
