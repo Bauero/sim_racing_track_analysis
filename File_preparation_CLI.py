@@ -461,8 +461,7 @@ def __multiple_file_processing(data_to_process,
                             "Writing information to .txt file under location")
 
                 txt_file = open(new_file, "w")
-                ts = display_track_summary(race_data,
-                                             race_data['laps_start_end'])
+                ts = display_track_summary(race_data)
 
                 if v:
                     print(c_green("Writing information to file Sucessful\n"))
@@ -477,7 +476,7 @@ def __multiple_file_processing(data_to_process,
                             "Writing information to .csv file under location")
 
             processed_file = __ask_remove_bad_laps(processed_file, race_data)
-            save_data_csv(processed_file, race_data, save_dir)
+            save_data_csv(processed_file, race_data, save_dir, cov_val_fl)
             
             if v:
                 print(c_green("Writing information to file Sucessful\n"))
@@ -531,7 +530,8 @@ def __option1(v : bool):
                                                  v, 
                                                  cov_val_fl, 
                                                  h_cod_rem, 
-                                                 col_to_rem)
+                                                 col_to_rem,
+                                                 delim)
     except FileNotFoundError:
         print(c_red(f"{e}"))
         input("\nPress Enter to go back to main menu >>> ")
@@ -561,7 +561,7 @@ def __option1(v : bool):
                                "Writing information to file under location")
 
             new_file = open(new_file, "w")
-            ts = display_track_summary(race_data, race_data['laps_start_end'])
+            ts = display_track_summary(race_data)
 
             if v:
                 print(c_green("Writing information to file Sucessful\n"))
@@ -569,7 +569,7 @@ def __option1(v : bool):
             new_file.write(ts)
             new_file.close()
 
-        save_data_csv(processed_file, race_data, dir_path)
+        save_data_csv(processed_file, race_data, dir_path, cov_val_fl)
 
     except Exception as e:
         print(c_red(f"Operation failed: {e}"))
