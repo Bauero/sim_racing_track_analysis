@@ -213,7 +213,7 @@ def save_data_csv(file_object,
         track_data = f"{special_path}{sign}{track_data}"
         data_summary = f"{special_path}{sign}{data_summary}"
 
-    file_object.to_csv(track_data, index=False)
+    file_object.to_csv(track_data, lineterminator = "\n", index=False)
 
     with open(data_summary, 'w') as data_file:
         data_file.write(json.dumps(race_data))
