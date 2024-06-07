@@ -584,6 +584,7 @@ def remove_laps(file_object, laps : list):
 def save_data_csv(file_object,
                   race_data,
                   special_path : str,
+                  save_to_excel_format : bool = False,
                   custom_cleaned_data_filename : str = "",
                   custom_data_summary_filename : str = ""):
     """
@@ -607,7 +608,7 @@ def save_data_csv(file_object,
         data_summary = f"{special_path}{sign}{data_summary}"
 
     with open(track_data,'w') as track_file:
-        csv.writer(track_file).writerows(file_object)
+        csv.writer(track_file, lineterminator="\n" ).writerows(file_object)
 
     with open(data_summary, 'w') as data_file:
         data_file.write(json.dumps(race_data))
