@@ -87,7 +87,7 @@ def openNewWindow3():
 def clean_file():
     x = filedialog.askopenfilename()
     race_info, file_object = prepare_data(x,verbose=True)
-    save_data_csv(file_object, race_info, "")
+    save_data_csv(file_object, race_info, race_info["log_date"], race_info["log_time"], "")
     print("File have been processed!")
 
 app_header=tkinter.Label(root,height= 1, width=20, text = "Track Record analysis", font=('Georgia', 60))
