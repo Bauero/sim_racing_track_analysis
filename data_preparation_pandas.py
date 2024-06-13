@@ -174,6 +174,15 @@ def prepare_data(file_path, verbose : bool = False,
     return race_info, df
 
 
+def return_formatted_date_and_time(race_data):
+    time, date = race_data["log_time"], race_data["log_date"]
+
+    time = time.replace("/","-").replace("\\","-").replace(":","-")
+    date = date.replace(".","-").replace("/","-")
+
+    return time, date
+
+
 def remove_laps(df, laps : list):
     laps = [str(l) for l in laps]
     rows_to_remove = df[df['LAP_BEACON'].isin(laps)].index
@@ -182,19 +191,33 @@ def remove_laps(df, laps : list):
 
 
 def save_data_csv(file_object,
-                     race_data,
-                     log_date : str,
-                     log_time : str, 
-                     special_path : str):
+                  race_data,
+                  special_path : str,
+                  save_values_as_float : bool = True,
+                  custom_cleaned_data_filename : str = "",
+                  custom_data_summary_filename : str = ""):
     
-    track_data = f"{log_date}_{log_time}_cleaned_data.csv"
-    data_summary = f"{log_date}_{log_time}_race_data.json"
+    if not (custom_cleaned_data_filename or custom_data_summary_filename):
+        log_date, log_time = return_formatted_date_and_time(race_data)
+
+    if not custom_cleaned_data_filename:
+        track_data = f"{log_date}_{log_time}_cleaned_data.csv"
+    else:
+        track_data = custom_cleaned_data_filename
+
+    if not custom_data_summary_filename:
+        data_summary = f"{log_date}_{log_time}_race_data.json"
+    else:
+        data_summary = custom_cleaned_data_filename
 
     if special_path:
         track_data = f"{special_path}{sign}{track_data}"
         data_summary = f"{special_path}{sign}{data_summary}"
 
-    file_object.to_csv(track_data, index=False)
+    file_object.to_csv(track_data,
+                       lineterminator = "\n",
+                       decimal = "." if save_values_as_float else ',',
+                       index=False)
 
     with open(data_summary, 'w') as data_file:
         data_file.write(json.dumps(race_data))

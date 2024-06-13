@@ -32,12 +32,13 @@ def display_laps_summary(laps_start_end, color : bool = False):
     return ts
 
 
-def display_track_summary(track_summary, laps_start_end, color : bool = False):
+def display_track_summary(race_data, color : bool = False):
     """
     This is helper function - it is used to prepare, and return track data
     in readable form (to be stored in file or displayed in console)
     """
 
+    laps_start_end = race_data['laps_start_end']
     ts = ''
 
     # line separator for clear display of data
@@ -47,14 +48,14 @@ def display_track_summary(track_summary, laps_start_end, color : bool = False):
         ts += "General informaiton about data\n\n"
 
     # display all stats except laps data (displayed separately below)
-    for stats in track_summary:
+    for stats in race_data:
         if stats == 'beacon_makers' or stats == 'laps_start_end':
             continue
         if color:
             ts += c_pink(f"{stats.capitalize():20}") + \
-                 " : "  +  f"{track_summary[stats]}\n"
+                 " : "  +  f"{race_data[stats]}\n"
         else:
-            ts += f"{stats.capitalize():20} : {track_summary[stats]}\n"
+            ts += f"{stats.capitalize():20} : {race_data[stats]}\n"
 
     ts += display_laps_summary(laps_start_end, color)
     
@@ -72,7 +73,7 @@ def extract_general_data(file_object, verbose : bool = False) -> dict:
     """
 
     # Read all information which are stored in the beginning of the file
-    track_summary = {
+    race_data = {
     'format' : file_object[0][1],
     'venue' : file_object[1][1],
     'vehicle' : file_object[2][1],
@@ -92,27 +93,27 @@ def extract_general_data(file_object, verbose : bool = False) -> dict:
     # Add beacon makers in readable form (list of floats)
     beacon_makers = file_object[11][1].strip().split(" ")
     beacon_makers = [float(i) for i in beacon_makers]
-    track_summary['beacon_makers'] = beacon_makers
+    race_data['beacon_makers'] = beacon_makers
 
     # Prepare dict of dicts which contains start end end of each lap
     # Lap 1 : 0.000 - 107.154
     # Lap 2 : 107.154 - 446.093
     # etc.
     laps_start_end = {}
-    tmp_start = float(track_summary['start_time'])
+    tmp_start = float(race_data['start_time'])
     for i in range(len(beacon_makers)):
         laps_start_end[str(i + 1)] = {"start" : tmp_start, 
                                       "end" : beacon_makers[i]}
         tmp_start = beacon_makers[i]
     else:
-        if float(track_summary['end_time']) > float(beacon_makers[-1]):
+        if float(race_data['end_time']) > float(beacon_makers[-1]):
             laps_start_end[str(i + 2)] = {"start" : beacon_makers[i], 
-                                    "end" : float(track_summary['end_time'])}
-    track_summary['laps_start_end'] = laps_start_end
+                                    "end" : float(race_data['end_time'])}
+    race_data['laps_start_end'] = laps_start_end
 
     # Display informaiton in the console if 'verbose' param set to 'True'
 
     if verbose:
-        print(display_track_summary(track_summary, laps_start_end, True))
+        print(display_track_summary(race_data, True))
         
-    return track_summary
+    return race_data
