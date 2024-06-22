@@ -1,13 +1,36 @@
 #! /usr/local/bin/python3.11
-from os import walk, path, curdir
-from tkinter.filedialog import askdirectory
-from tkinter import Tk
 import pandas as pd
+from os import walk
+from constants import sign
+from additional_commands import clean, c_blue, c_green
 
 
-def concatenate_files(input_directory, store_directory : str = "", \
-                      output_file_name : str = 'concatenated', 
-                      verbose : bool = False):
+def proper_file(root, file) -> bool:
+    """
+    This funciton is used for filtering files. While contcatenating files, we
+    run `os.walk` command, which finds multiple files. This function defines
+    which files should classify as the one for concatenation
+
+    This fuction yields `True` only for files with names ending on 
+    `_cleaned_data.csv`, and those which are stored in such a file structure 
+    where the 3 folder from the top is called 'Cleaned data'
+
+    EX:
+    if (>>>) is the starting directory, then
+
+    - >>> /Cleaned data/ folder 2/ folder 3/ sth_cleaned_data.csv = True
+    - >>> /folder 1/ folder 2/ folder 3/ sth_cleaned_data.csv = False
+    - >>> /Cleaned data/ folder 2/ folder 3/ different_file.csv = False
+    - >>> / sth_cleaned_data.csv !!! Raises Error !!!
+    """
+    
+    return file.endswith("_cleaned_data.csv") and \
+            (root.split("/")[-3] == "Cleaned data")
+
+
+def concatenate_files(input_directory, 
+                      function_to_filter_files,
+                      columns_to_keep : list = []) -> pd.DataFrame:
     """
     This function is responsible for finding and concatenating all files
     which are .csv files and combining them into one file
@@ -18,25 +41,16 @@ def concatenate_files(input_directory, store_directory : str = "", \
     \t(by default file is stored in the same localzation as python file itself)
     """
 
-    # Path to save the concatenated CSV file
-    output_file = output_file_name + ".csv"
-
     # List to hold all DataFrames
     data_frames = []
-
-    # if verbose: print(list(map(lambda x: filter(x.endswith("_cleaned_data.csv"), ), list(walk(input_directory)))))  # DEBUG
-
-    elements = list(walk(input_directory))
-
     files_to_process = []
+    elements = list(walk(input_directory))
 
     for elem in elements:
         root, dirs, files = elem
         for f in files:
-            if f.endswith("_cleaned_data.csv") and (root.split("/")[-3] == "Cleaned data"):
+            if function_to_filter_files(root, f):
                 files_to_process.append((root, f))
-
-    columns_to_keep = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', 'THROTTLE', 'RPMS', 'G_LAT', 'G_LON', 'SPEED', 'BRAKE', 'LAP_BEACON']
 
     file_no = 1
 
@@ -53,78 +67,64 @@ def concatenate_files(input_directory, store_directory : str = "", \
         data_frames.append(df)
         file_no += 1
     
-
     concatenated_df = pd.concat(data_frames, ignore_index=True)
 
-    concatenated_df.to_csv(
-    store_directory + "/" + output_file if store_directory else output_file,
-    index=False
-    )
-    
-
-    # def search_dir_recursivly(start_directory : str):
-    #     """
-    #     This funciton will recursivly search through all folders and
-    #     for each file with extension .csv except 'concatenated.csv'
-    #     add file name into variable data_frames
-    #     """
-
-    #     root, dirs, files  = list(walk(start_directory))[0]
-    #     for filename in files:
-    #         if filename.endswith('cleaned_data.csv') and filename != output_file:
-    #             file_path = path.join(start_directory, filename)
-    #             df = pd.read_csv(file_path)
-                # df.insert(2, "'Numer Testu'", [f"'{root[-4:]}'" for _ in range(len(df.index))])
-    #             data_frames.append(df)
-    #     for dir in dirs:
-    #         search_dir_recursivly(root+"/"+dir)
+    return concatenated_df
 
 
-    # search_dir_recursivly(input_directory)
-
-    # # Concatenate all DataFrames into a single DataFrame
-    # concatenated_df = pd.concat(data_frames, ignore_index=True)
-
-    # # Save the concatenated DataFrame to a CSV file
-    # concatenated_df.to_csv(
-    #     store_directory + "/" + output_file if store_directory else output_file,
-    #     index=False
-    #     )
-
-    # if verbose: print("CSV files concatenated and saved as", output_file , 
-    #       store_directory if store_directory else "") # DEBUG
-
-
-# If file is execute separately (not imported) -> execute
 if __name__ == "__main__":
 
-    dir = None
+    from tkinter.filedialog import askdirectory
+    from tkinter import Tk
 
-    while dir == None:
+    columns_to_keep = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', 
+                       'THROTTLE', 'RPMS', 'G_LAT', 'G_LON', 'SPEED', 'BRAKE', 
+                       'LAP_BEACON']
+
+    dir = ""
+    savedir = ""
+    output_file = "concatenated.csv"
+
+    clean()
+
+    while not dir:
         Tk().withdraw()
-        dir = askdirectory(title="Select directory to look for files recursively")
+        dir = askdirectory(
+            title="Select directory to look for files recursively")
         Tk().destroy()
-        if dir == None:
-            print("No directory selected - write C + Enter to cancel or just Enter to retry")
+        if not dir:
+            print("No directory selected - write C + Enter to " +
+                  "cancel or just Enter to retry")
             a = input(">>> ").lower().strip()
             if a == 'c':
+                print("Stopping execution as no directory for search selected")
                 exit()
         
-    print(f"Operation successful - you've selected: {dir}")
+    clean()
+    print(f"Operation successful - you've selected: {c_blue(dir)}")
+    input("\nPress Enter to proceed to selection of save directory")
 
-    print("\n Press Enter to proceed to selection of save directory")
-
-    savedir = None
-
-    while savedir == None:
+    while not savedir:
         Tk().withdraw()
-        savedir = askdirectory(title="Select directory to look for files recursively")
+        savedir = askdirectory(
+            initialdir = dir,
+            title="Select directory to look for files recursively")
         Tk().destroy()
-        if savedir == None:
-            print("No directory selected - write C + Enter to cancel or just Enter to retry")
+        if not savedir:
+            print("No directory selected - write C + Enter to " +
+                  "cancel or just Enter to retry")
             a = input(">>> ").lower().strip()
             if a == 'c':
+                print("Stopping execution as no save directory selected")
                 exit()
 
+    clean()
+
     # starts execution of funcitno from directory of file itself
-    concatenate_files(dir, savedir, verbose = True)
+    concat_file = concatenate_files(dir, proper_file, columns_to_keep)
+
+    # save file in the selected directory
+    concat_file.to_csv(savedir + sign + output_file, index=False)
+
+    print(c_green("Operaiton successful"))
+    input("\nPress Enter to exit >>> ")
