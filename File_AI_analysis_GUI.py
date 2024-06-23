@@ -3,7 +3,7 @@ import pandas as pd
 from additional.additional_commands import *
 from additional.constants import sign, sections
 from tkinter import Tk, Button, Label, Toplevel, PhotoImage, \
-                    filedialog, messagebox
+                    filedialog, messagebox, Entry, IntVar
 from ai.AlgorithmAI import train_algorithm, write_data_into_file, \
                            read_data_from_file, plot_group_of_points
 
@@ -60,6 +60,39 @@ def __show_loading_window():
     return loading_window
 
 
+def __get_number_from_user():
+    global root
+
+    number_var = IntVar()
+    number_var.set(None)
+
+    def on_submit():
+        try:
+            number = int(entry.get())
+            number_var.set(number)
+            popup.destroy()
+        except ValueError:
+            error_label.config(text="Please enter a valid number")
+
+    # Create a popup window
+    popup = Toplevel(root)
+    popup.title("Enter a Number")
+
+    Label(popup, text="Please enter a number:").pack(pady=10)
+
+    entry = Entry(popup)
+    entry.pack(pady=5)
+
+    submit_button = Button(popup, text="Submit", command=on_submit)
+    submit_button.pack(pady=10)
+
+    error_label = Label(popup, text="", fg="red")
+    error_label.pack()
+
+    popup.wait_window(popup)  # Wait here until popup is destroyed
+    return number_var.get()
+
+
 def __generate_new_ai_graphs():
 
     global root
@@ -106,17 +139,30 @@ def __generate_new_ai_graphs():
 
 def __show_one_specific_graph():
     
-    selected_file = "10"
     dir = os.curdir + sign + "graphs_for_section"
-    if not __verify_graphs_exist(dir, selected_file):
-        messagebox.showerror("Wrong Number","Selected section doesn't exist!")
-        return
+
+    selected_file = None
+
+    while selected_file == None:
+        Tk().withdraw()
+        selected_file = __get_number_from_user()
+        if selected_file == None:
+            output = messagebox.askyesno("No directory selected !",
+                                "Do you want to retry selecting directory?",
+                                parent = root)
+
+            if output == False: return
+        if selected_file < 0 or selected_file > no_of_sec:
+            output = messagebox.askyesno("Incorrect number",
+                                f"Value outside range 1 - {no_of_sec}!\n" +
+                                " Do you want to retry selecting directory?",
+                                parent = root)
+
+            if output == False: return
+            selected_file = None            
 
     sel_file = dir + sign + f"ai_data_{selected_file}.pickle"
-
-    result = read_data_from_file(sel_file)
-
-    agg_data, kmeans = result
+    agg_data, kmeans = read_data_from_file(sel_file)
 
     plot_group_of_points(agg_data, kmeans)
 
@@ -171,3 +217,5 @@ Button2.place(x=700, y=280)
 Button5.place(x=700, y=500)
 
 root.mainloop()
+
+exit()
