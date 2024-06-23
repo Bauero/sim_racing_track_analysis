@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
+import pickle
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from os.path import isfile, dirname
-from constants import sign
+from .constants import sign
 
 
 def train_algorithm(data : pd.DataFrame,
@@ -137,7 +138,6 @@ if __name__ == "__main__":
 
     from tkinter.filedialog import askopenfilename
     from tkinter import Tk
-    import pickle
 
     
     selected_columns = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', \
