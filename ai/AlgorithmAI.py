@@ -62,6 +62,27 @@ def train_algorithm(data : pd.DataFrame,
     return aggregated_data, kmeans
 
 
+def filter_data(data : pd.DataFrame, 
+                section : int = 1, 
+                groupbycol : list = ['LAP_BEACON', 'LAP_NO'], 
+                aggbycol : list = ['Time_on_lap', 'SPEED'],
+                debug : bool = False):
+    
+    # Restructure data, by filtering and grouping according to input params
+    filtered_data = data[data['Section'] == section]
+    grouped_data = filtered_data.groupby(groupbycol)
+    last_time_on_lap = grouped_data['Time_on_lap'].last()
+    aggregated_data = grouped_data.mean()
+
+    # Readjust restructurized data for trainging
+    aggregated_data['Time_on_lap'] = last_time_on_lap
+    aggregated_data.reset_index(inplace = True)
+
+    if debug:   print(aggregated_data.head())
+
+    return aggregated_data[aggbycol]
+
+
 def plot_group_of_points(aggregated_data, kmeans, section):
     """
     This function plots all datapoints from the oryginal data, along with all

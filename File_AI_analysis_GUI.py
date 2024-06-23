@@ -4,8 +4,9 @@ from additional.additional_commands import *
 from additional.constants import sign, sections
 from tkinter import Tk, Button, Label, Toplevel, PhotoImage, \
                     filedialog, messagebox, Entry, IntVar
-from ai.AlgorithmAI import train_algorithm, write_data_into_file, \
-                           read_data_from_file, plot_group_of_points
+from ai.AlgorithmAI import train_algorithm, write_data_into_file, filter_data, \
+                           read_data_from_file, plot_group_of_points, \
+                           plot_points_from_new_data_with_all_points
 
 
 ####################  GUI WINDOW CREATION AND CONTSTANTS   ####################
@@ -15,6 +16,7 @@ from ai.AlgorithmAI import train_algorithm, write_data_into_file, \
 
 btnH = 1
 btnW = 20
+btnW2 = 30
 font1 = ('Georgia', 30)
 font2 = ('Georgia', 60)
 font3 = ('Georgia', 15)
@@ -41,11 +43,11 @@ def __ensure_directory(directory):
         os.makedirs(directory)
 
 
-def __verify_graphs_exist(directory, file_no):
+def __verify_graphs_exist(directory):
     files = list(os.walk(directory))[0][2]
     filtered_files = list(filter(lambda x: x.endswith(".pickle"), files))
     
-    return f"ai_data_{file_no}.pickle" in filtered_files
+    return len(filter_data) >= no_of_sec
 
 
 def __show_loading_window():
@@ -167,6 +169,56 @@ def __show_one_specific_graph():
     plot_group_of_points(agg_data, kmeans, selected_section)
 
 
+def __show_one_specific_graph_with_points():
+
+    selected_columns = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', \
+                        'THROTTLE','RPMS', 'G_LAT', 'G_LON', 'SPEED', 'BRAKE', \
+                        'LAP_BEACON']
+    grbycol = ['LAP_BEACON']
+    aggbycol = ['Time_on_lap', 'SPEED']
+
+    Tk().withdraw()
+    csv_file_path = filedialog.askopenfilename()  # Replace with your file path
+    if csv_file_path == "": exit()
+    
+    dir = os.curdir + sign + "graphs_for_section"
+    selected_section = None
+
+    while selected_section == None:
+        Tk().withdraw()
+        selected_section = __get_number_from_user()
+        if selected_section == None:
+            output = messagebox.askyesno("No directory selected !",
+                                "Do you want to retry selecting directory?",
+                                parent = root)
+
+            if output == False: return
+        if selected_section < 0 or selected_section > no_of_sec:
+            output = messagebox.askyesno("Incorrect number",
+                                f"Value outside range 1 - {no_of_sec}!\n" +
+                                " Do you want to retry selecting directory?",
+                                parent = root)
+
+            if output == False: return
+            selected_section = None            
+
+    sel_file = dir + sign + f"ai_data_{selected_section}.pickle"
+    agg_data, kmeans = read_data_from_file(sel_file)
+
+
+    data = pd.read_csv(csv_file_path, usecols=selected_columns)
+    data_to_compare = filter_data(data, selected_section, grbycol, aggbycol)
+
+    dtc_x = data_to_compare[aggbycol[0]]
+    dtc_y = data_to_compare[aggbycol[1]]
+
+    plot_points_from_new_data_with_all_points(dtc_x, dtc_y, "orange", 100, 
+                                              agg_data,
+                                              kmeans,
+                                              selected_section)
+
+
+
 ########################   GUI SETUP AND ARRANGEMENT   ########################
 
 # Buttons and elements inside window
@@ -200,6 +252,14 @@ Button2 = Button(root,
                  bg = 'lightskyblue',
                  command = __show_one_specific_graph)
 
+Button3 = Button(root, 
+                 height = btnH, 
+                 width = btnW2, 
+                 text = "Compare fresh data with stats for seciton", 
+                 font = font1,
+                 bg = 'lightskyblue',
+                 command = __show_one_specific_graph_with_points)
+
 Button5 = Button(root, 
                  height = btnH, 
                  width = btnW, 
@@ -214,6 +274,7 @@ app_header.pack(pady=30)
 T.place(x=150, y=200)
 Button1.place(x=700, y=200)
 Button2.place(x=700, y=280)
+Button3.place(x=600, y=360)
 Button5.place(x=700, y=500)
 
 root.mainloop()
