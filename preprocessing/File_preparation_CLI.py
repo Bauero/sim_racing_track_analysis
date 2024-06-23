@@ -6,9 +6,9 @@ import os
 from tkinter import Tk
 from tkinter import filedialog
 from data_preparation import *
-from additional_commands import *
-from constants import physical_columns
-from race_data_extraction_display import display_track_summary, \
+from additional.additional_commands import *
+from additional.constants import physical_columns
+from additional.race_data_extraction_display import display_track_summary, \
                                          display_laps_summary
 
 

@@ -1,5 +1,5 @@
 import openpyxl
-from helper_functions import *
+from additional.helper_functions import *
 
 path = r"/Users/piotrbauer/Documents/SGGW/Semsetr_6/HANZE/car_data_analysis/Data/Clean_data/06-05/Register_laps_2.xlsx"
 file = openpyxl.open(path)

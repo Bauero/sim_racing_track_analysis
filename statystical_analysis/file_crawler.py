@@ -1,6 +1,6 @@
 import os
-from additional_commands import *
-from constants import sign
+from additional.additional_commands import *
+from additional.constants import sign
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 

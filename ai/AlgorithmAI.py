@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from os.path import isfile, dirname
-from constants import sign
+from additional.constants import sign
 
 
 def train_algorithm(data : pd.DataFrame,

@@ -14,9 +14,9 @@ seems to perform sligltly better than this implementation in Pandas.
 import pandas as pd
 import csv
 import json
-from constants import sign, sections
-from additional_commands import clean
-from race_data_extraction_display import *
+from additional.constants import sign, sections
+from additional.additional_commands import clean
+from additional.race_data_extraction_display import *
 
 
 #############################  INTERNAL FUNCITONS  #############################

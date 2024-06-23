@@ -4,10 +4,10 @@ This file contains menu to operate data_analysis file
 import os
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
-from additional_commands import *
-from additional_commands import clean
+from additional.additional_commands import *
+from additional.additional_commands import clean
 from data_analysis import data_analysis
-from constants import sign
+from additional.constants import sign
 
 
 #############################  INTERNAL FUNCITONS  #############################

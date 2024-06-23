@@ -1,8 +1,8 @@
 import os
 from tkinter import *
 from tkinter import filedialog
-from data_preparation_pandas import *
-from additional_commands import *
+from preprocessing.data_preparation import *
+from additional.additional_commands import *
 from data_analysis import *
 
 root = Tk()
