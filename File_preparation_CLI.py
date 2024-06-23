@@ -5,7 +5,7 @@ This file contains menu to operate data_preparation file
 import os
 from tkinter import Tk
 from tkinter import filedialog
-from data_preparation import *
+from preparation.data_preparation import *
 from additional.additional_commands import *
 from additional.constants import physical_columns
 from additional.race_data_extraction_display import display_track_summary, \
