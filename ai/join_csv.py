@@ -1,8 +1,8 @@
 #! /usr/local/bin/python3.11
 import pandas as pd
 from os import walk
-from additional.constants import sign
-from additional.additional_commands import clean, c_blue, c_green
+from constants import sign
+from additional_commands import clean, c_blue, c_green
 
 
 def proper_file(root, file) -> bool:

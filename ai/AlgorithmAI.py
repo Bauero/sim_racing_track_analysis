@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from os.path import isfile, dirname
-from additional.constants import sign
+from constants import sign
 
 
 def train_algorithm(data : pd.DataFrame,
@@ -148,6 +148,8 @@ if __name__ == "__main__":
 
     Tk().withdraw()
     csv_file_path = askopenfilename()  # Replace with your file path
+    
+    if csv_file_path == "": exit()
 
     data = pd.read_csv(csv_file_path, usecols=selected_columns)
     aggregated_data, kmeans = train_algorithm(data, 5, grbycol, aggbycol)
