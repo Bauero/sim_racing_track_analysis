@@ -1,9 +1,9 @@
 import os
 from tkinter import *
 from tkinter import filedialog
-from preprocessing.data_preparation import *
+from preparation.data_preparation import *
 from additional.additional_commands import *
-from data_analysis import *
+from statystical_analysis.data_analysis import *
 
 root = Tk()
 root.geometry("1280x720")
