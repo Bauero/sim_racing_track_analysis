@@ -141,30 +141,30 @@ def __show_one_specific_graph():
     
     dir = os.curdir + sign + "graphs_for_section"
 
-    selected_file = None
+    selected_section = None
 
-    while selected_file == None:
+    while selected_section == None:
         Tk().withdraw()
-        selected_file = __get_number_from_user()
-        if selected_file == None:
+        selected_section = __get_number_from_user()
+        if selected_section == None:
             output = messagebox.askyesno("No directory selected !",
                                 "Do you want to retry selecting directory?",
                                 parent = root)
 
             if output == False: return
-        if selected_file < 0 or selected_file > no_of_sec:
+        if selected_section < 0 or selected_section > no_of_sec:
             output = messagebox.askyesno("Incorrect number",
                                 f"Value outside range 1 - {no_of_sec}!\n" +
                                 " Do you want to retry selecting directory?",
                                 parent = root)
 
             if output == False: return
-            selected_file = None            
+            selected_section = None            
 
-    sel_file = dir + sign + f"ai_data_{selected_file}.pickle"
+    sel_file = dir + sign + f"ai_data_{selected_section}.pickle"
     agg_data, kmeans = read_data_from_file(sel_file)
 
-    plot_group_of_points(agg_data, kmeans)
+    plot_group_of_points(agg_data, kmeans, selected_section)
 
 
 ########################   GUI SETUP AND ARRANGEMENT   ########################

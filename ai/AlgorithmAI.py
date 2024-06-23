@@ -62,7 +62,7 @@ def train_algorithm(data : pd.DataFrame,
     return aggregated_data, kmeans
 
 
-def plot_group_of_points(aggregated_data, kmeans):
+def plot_group_of_points(aggregated_data, kmeans, section):
     """
     This function plots all datapoints from the oryginal data, along with all
     markers of the cluster centers
@@ -77,7 +77,7 @@ def plot_group_of_points(aggregated_data, kmeans):
 
     # Prepare the plot
     plt.figure(figsize=(10, 7))
-    plt.title('K-Means Clustering: Time_on_lap vs. SPEED')
+    plt.title(f'K-Means Clustering: Time_on_lap vs. SPEED - section {section}')
     plt.xlabel('Time on Lap')
     plt.ylabel('Speed')
 
@@ -94,7 +94,8 @@ def plot_points_from_new_data_with_all_points(new_x_points,
                                               color_new_point,
                                               size_new_point,
                                               aggregated_data,
-                                              kmeans):
+                                              kmeans,
+                                              section):
     """
     By design, this function does mostly the same as the `plot_group_of_points`;
     The only difference, it that it allows to put another set of point, on top
@@ -104,7 +105,7 @@ def plot_points_from_new_data_with_all_points(new_x_points,
     """
 
     plt.ion()
-    plot_group_of_points(aggregated_data, kmeans)
+    plot_group_of_points(aggregated_data, kmeans, section)
     plt.scatter(new_x_points, new_y_poinst, c=color_new_point, s=size_new_point)
     plt.ioff()
     plt.show()
@@ -153,7 +154,7 @@ if __name__ == "__main__":
 
     data = pd.read_csv(csv_file_path, usecols=selected_columns)
     aggregated_data, kmeans = train_algorithm(data, 5, grbycol, aggbycol)
-    plot_group_of_points(aggregated_data, kmeans)
+    plot_group_of_points(aggregated_data, kmeans, 5)
     
     # Example, on how to use this function
     # plot_points_from_new_data_with_all_points(30,
@@ -161,4 +162,5 @@ if __name__ == "__main__":
     #                                           'orange',
     #                                           100,
     #                                           aggregated_data,
-    #                                           kmeans)
+    #                                           kmeans,
+    #                                           5)
