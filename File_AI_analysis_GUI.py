@@ -1,13 +1,11 @@
 import os
 import pandas as pd
-import tkinter as tk
-from tkinter import Tk, Button, Label, Toplevel, PhotoImage, filedialog, messagebox, ttk
 from additional.additional_commands import *
 from additional.constants import sign, sections
-from ai.AlgorithmAI import train_algorithm, \
-                           write_data_into_file, \
-                           read_data_from_file, \
-                           plot_group_of_points
+from tkinter import Tk, Button, Label, Toplevel, PhotoImage, \
+                    filedialog, messagebox
+from ai.AlgorithmAI import train_algorithm, write_data_into_file, \
+                           read_data_from_file, plot_group_of_points
 
 
 ####################  GUI WINDOW CREATION AND CONTSTANTS   ####################
@@ -38,19 +36,19 @@ bg_image_set.place(relheight=1, relwidth=1)
 #########################  FUNCITONS USED IN PROGRAM   #########################
 
 
-def ensure_directory(directory):
+def __ensure_directory(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
 
-def verify_graphs_exist(directory, file_no):
+def __verify_graphs_exist(directory, file_no):
     files = list(os.walk(directory))[0][2]
     filtered_files = list(filter(lambda x: x.endswith(".pickle"), files))
     
     return f"ai_data_{file_no}.pickle" in filtered_files
 
 
-def show_loading_window():
+def __show_loading_window():
     loading_window = Toplevel(root)
     loading_window.title("Loading")
     loading_window.geometry("200x100")
@@ -62,14 +60,14 @@ def show_loading_window():
     return loading_window
 
 
-def generate_new_ai_graphs():
+def __generate_new_ai_graphs():
 
     global root
     global no_of_sec
 
     cdir = os.curdir
     fol_for_data = cdir + sign + "graphs_for_section"
-    ensure_directory(fol_for_data)
+    __ensure_directory(fol_for_data)
 
     selected_file = ""
 
@@ -106,11 +104,11 @@ def generate_new_ai_graphs():
     return
 
 
-def show_one_specific_graph():
+def __show_one_specific_graph():
     
     selected_file = "10"
     dir = os.curdir + sign + "graphs_for_section"
-    if not verify_graphs_exist(dir, selected_file):
+    if not __verify_graphs_exist(dir, selected_file):
         messagebox.showerror("Wrong Number","Selected section doesn't exist!")
         return
 
@@ -121,7 +119,6 @@ def show_one_specific_graph():
     agg_data, kmeans = result
 
     plot_group_of_points(agg_data, kmeans)
-
 
 
 ########################   GUI SETUP AND ARRANGEMENT   ########################
@@ -147,15 +144,15 @@ Button1 = Button(root,
                  text = "Do analysis for all section", 
                  font = font1,
                  bg = 'lightskyblue',
-                 command=generate_new_ai_graphs)
+                 command = __generate_new_ai_graphs)
 
 Button2 = Button(root, 
                  height = btnH, 
                  width = btnW, 
-                 text = "Display comparison for one section", 
+                 text = "Show graph for one section", 
                  font = font1,
                  bg = 'lightskyblue',
-                 command=show_one_specific_graph)
+                 command = __show_one_specific_graph)
 
 Button5 = Button(root, 
                  height = btnH, 
@@ -170,7 +167,7 @@ Button5 = Button(root,
 app_header.pack(pady=30)
 T.place(x=150, y=200)
 Button1.place(x=700, y=200)
-Button2.place(x=700, y=300)
+Button2.place(x=700, y=280)
 Button5.place(x=700, y=500)
 
 root.mainloop()
