@@ -7,9 +7,10 @@ it can be run by external program
 
 import csv
 import json
-from constants import sections, sign
-from race_data_extraction_display import extract_general_data
-from additional_commands import c_blue, c_green, c_cyan, c_yellow, clean
+from preparation.constants import sections, sign
+from preparation.race_data_extraction_display import extract_general_data
+from preparation.additional_commands import c_blue, c_green, c_cyan, c_yellow, \
+                                            clean
 
 
 #############################  INTERNAL FUNCITONS  #############################

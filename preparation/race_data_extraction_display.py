@@ -4,7 +4,7 @@ race data from csv file from MoTeC. Those funciton are stored in separate file
 as they are use by data preparation files both using standard solution, and
 pandas library
 """
-from additional_commands import c_blue, c_green, c_pink, c_cyan
+from preparation.additional_commands import c_blue, c_green, c_pink, c_cyan
 
 
 def display_laps_summary(laps_start_end, color : bool = False):

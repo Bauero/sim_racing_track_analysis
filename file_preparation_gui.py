@@ -8,7 +8,7 @@ from statystical_analysis.data_analysis import *
 root = Tk()
 root.geometry("1280x720")
 root.title("Track Record analysis")
-image_path = r"12-5-scaled-1920x1080.png"
+image_path = r"assets/12-5-scaled-1920x1080.png"
 
 bg_image = PhotoImage(file=image_path)
 bg_image_set = Label(root, image=bg_image)

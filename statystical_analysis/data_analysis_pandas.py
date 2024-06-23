@@ -6,7 +6,7 @@ expected to have names in form of '`data_time_cleaned_data.csv`'
 """
 
 import pandas as pd
-from constants import sign
+from statystical_analysis.constants import sign
 from tkinter.filedialog import askdirectory
 
 
