@@ -164,4 +164,4 @@ cython_debug/
 Icon\r
 Icon
 .vscode/settings.json
-.graphs_for_section
+graphs_for_section/
