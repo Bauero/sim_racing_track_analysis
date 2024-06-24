@@ -136,6 +136,11 @@ def draw_heatmap_for_file(file):
                     label=section, 
                     c = color_map.get(section),
                     )
+        # Add section labels
+        section_mean_x = np.mean(section_coords[0])
+        section_mean_y = np.mean(section_coords[1])
+        plt.text(section_mean_x, section_mean_y, str(section), 
+                 fontsize=12, ha='center', va='center', color='black')
         
 
     x_min, x_max = np.min(rotated_coords[0]), np.max(rotated_coords[0])
