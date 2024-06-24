@@ -365,7 +365,7 @@ def __add_additional_columns(file_object,
 
 
 def prepare_data(file_path, verbose : bool = False,
-                 convert_values_with_float_conversion : bool = False,
+                 convert_values_with_float_conversion : bool = True,
                  hard_codec_row_removal : bool = True,
                  column_remove_list : list = [],
                  delim : str = ','):
