@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     columns_to_keep = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', 
                        'THROTTLE', 'RPMS', 'G_LAT', 'G_LON', 'SPEED', 'BRAKE', 
-                       'LAP_BEACON']
+                       'LAP_BEACON', "Distance", "Distance_on_lap"]
 
     dir = ""
     savedir = ""

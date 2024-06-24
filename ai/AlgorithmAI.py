@@ -164,7 +164,7 @@ if __name__ == "__main__":
     
     selected_columns = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', \
                         'THROTTLE','RPMS', 'G_LAT', 'G_LON', 'SPEED', 'BRAKE', \
-                        'LAP_BEACON', 'LAP_NO']
+                        'LAP_BEACON', 'LAP_NO', "Distance", "Distance_on_lap"]
     grbycol = ['LAP_BEACON', 'LAP_NO']
     aggbycol = ['Time_on_lap', 'SPEED']
 

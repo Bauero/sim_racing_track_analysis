@@ -173,7 +173,7 @@ def __show_one_specific_graph_with_points():
 
     selected_columns = ['Section', 'Time', 'Time_on_lap', 'STEERANGLE', \
                         'THROTTLE','RPMS', 'G_LAT', 'G_LON', 'SPEED', 'BRAKE', \
-                        'LAP_BEACON']
+                        'LAP_BEACON', "Distance", "Distance_on_lap"]
     grbycol = ['LAP_BEACON']
     aggbycol = ['Time_on_lap', 'SPEED']
 
