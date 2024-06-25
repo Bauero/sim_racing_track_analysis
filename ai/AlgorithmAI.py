@@ -5,13 +5,27 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from os.path import isfile, dirname
-from .constants import sign
+
+
+def process_grouped_data(grouped_data, col, process_type):
+    match process_type:
+        case 'highest':
+            return grouped_data[col].apply(lambda x: x.loc[x.abs().idxmax()])
+        case 'last':
+            return grouped_data[col].last()
+        case 'average':
+            return grouped_data[col].mean()
+        case _:
+            return grouped_data[col]
 
 
 def train_algorithm(data : pd.DataFrame,
                     section : int = 1, 
                     groupbycol : list = ['LAP_BEACON', 'LAP_NO'], 
-                    aggbycol : list = ['Time_on_lap', 'SPEED'],
+                    col1: str = 'Distance_on_lap',
+                    col2: str = 'BRAKE',
+                    col1_process: str = 'none',
+                    col2_process: str = 'none',
                     debug : bool = False):
     """
     This code is responsible for creating clusters based on provided data for
@@ -33,22 +47,76 @@ def train_algorithm(data : pd.DataFrame,
     # Restructure data, by filtering and grouping according to input params
     filtered_data = data[data['Section'] == section]
     grouped_data = filtered_data.groupby(groupbycol)
-    last_time_on_lap = grouped_data['Time_on_lap'].last()
-    aggregated_data = grouped_data.mean()
 
-    # Readjust restructurized data for trainging
-    aggregated_data['Time_on_lap'] = last_time_on_lap
-    aggregated_data.reset_index(inplace = True)
+    if debug:
+        print("Filtered Data:")
+        print(filtered_data.head())
 
-    if debug:   print(aggregated_data.head())
-
-    # Scale readjusted data, to remove weigh inbalace across columns
-    features_to_scale = aggregated_data.drop(columns = aggbycol)
-    scaler = StandardScaler()
-    scaled_features = scaler.fit_transform(features_to_scale)
-    scaled_data = np.hstack((aggregated_data[aggbycol].values, 
-                             scaled_features))
+    if col1_process != 'none':
+        aggregated_col1 = process_grouped_data(grouped_data, 
+                                               col1, 
+                                               col1_process).reset_index()
+    else:
+        aggregated_col1 = filtered_data[[groupbycol[0], 
+                                         groupbycol[1], 
+                                         col1]].copy()
+        
+    if col2_process != 'none':
+        aggregated_col2 = process_grouped_data(grouped_data, 
+                                               col2, 
+                                               col2_process).reset_index()
+    else:
+        aggregated_col2 = filtered_data[[groupbycol[0], 
+                                         groupbycol[1], 
+                                         col2]].copy()
     
+    # If either col1_process or col2_process is 'none', we need to handle it differently
+    if col1_process == 'none' and col2_process == 'none':
+        aggregated_data = filtered_data[[groupbycol[0], 
+                                         groupbycol[1], 
+                                         col1, 
+                                         col2]].copy()
+    elif col1_process == 'none':
+        aggregated_data = pd.merge(aggregated_col1, 
+                                   aggregated_col2, 
+                                   on=groupbycol, 
+                                   suffixes=('_col1', '_col2'))
+        aggregated_data.rename(columns={f'{col2}_col2': col2}, inplace=True)
+    
+    elif col2_process == 'none':
+        aggregated_data = pd.merge(aggregated_col1, 
+                                   aggregated_col2, 
+                                   on=groupbycol, 
+                                   suffixes=('_col1', '_col2'))
+        aggregated_data.rename(columns={f'{col1}_col1': col1}, inplace=True)
+
+    else:
+        aggregated_data = pd.merge(aggregated_col1, 
+                                   aggregated_col2, 
+                                   on=groupbycol, 
+                                   suffixes=('_col1', '_col2'))
+        aggregated_data.rename(columns={f'{col1}_col1': col1, 
+                                        f'{col2}_col2': col2}, inplace=True)
+
+    if debug:
+        print("Aggregated Data:")
+        print(aggregated_data.head())
+
+    # Ensure that only numerical columns are scaled
+    features_to_scale = aggregated_data.drop(columns=[col1, col2], 
+                                             errors='ignore')
+    if not features_to_scale.empty:
+        scaler = StandardScaler()
+        scaled_features = scaler.fit_transform(features_to_scale)
+        scaled_data = np.hstack((aggregated_data[[col1, col2]].values, 
+                                 scaled_features))
+    else:
+        scaled_data = aggregated_data[[col1, col2]].values
+
+    if debug:
+        print("Scaled Data:")
+        print(scaled_data[:5])
+
     # Actual clustering
     kmeans = KMeans(n_clusters=3, n_init=10, max_iter=300, random_state=42)
     kmeans.fit(scaled_data)
@@ -57,12 +125,87 @@ def train_algorithm(data : pd.DataFrame,
     y_kmeans = kmeans.predict(scaled_data)
     aggregated_data['Cluster'] = y_kmeans
 
-    if debug:   print(aggregated_data.head())
+    if debug:   
+        print("Final Aggregated Data with Clusters:")
+        print(aggregated_data.head())
 
     return aggregated_data, kmeans
 
 
 def filter_data(data : pd.DataFrame, 
+                section : int = 1, 
+                groupbycol : list = ['LAP_BEACON', 'LAP_NO'],
+                col1: str = 'Distance_on_lap',
+                col2: str = 'BRAKE',
+                col1_process: str = 'none',
+                col2_process: str = 'none',
+                debug : bool = False):
+    
+    """
+    
+    - col1 / col2 _process - options: 'average', 'last', 'highest', 'none'
+    """
+
+    # Restructure data, by filtering and grouping according to input params
+    filtered_data = data[data['Section'] == section]
+    grouped_data = filtered_data.groupby(groupbycol)
+    
+    if debug:
+        print("Filtered Data:")
+        print(filtered_data.head())
+
+    if col1_process != 'none':
+        aggregated_col1 = process_grouped_data(grouped_data, 
+                                               col1, 
+                                               col1_process).reset_index()
+    else:
+        tmp = groupbycol + [col1]
+        aggregated_col1 = filtered_data[tmp].copy()
+        
+    if col2_process != 'none':
+        aggregated_col2 = process_grouped_data(grouped_data, 
+                                               col2, 
+                                               col2_process).reset_index()
+    else:
+        tmp = groupbycol + [col2]
+        aggregated_col2 = filtered_data[tmp].copy()
+    
+    # If either col1_process or col2_process is 'none', 
+    # we need to handle it differently
+    if col1_process == 'none' and col2_process == 'none':
+        tmp = groupbycol + [col1, col2]
+        aggregated_data = filtered_data[tmp].copy()
+
+    elif col1_process == 'none':
+        aggregated_data = pd.merge(aggregated_col1, 
+                                   aggregated_col2, 
+                                   on = groupbycol, 
+                                   suffixes = ('_col1', '_col2'))
+        aggregated_data.rename(columns={f'{col2}_col2': col2}, inplace=True)
+
+    elif col2_process == 'none':
+        aggregated_data = pd.merge(aggregated_col1, 
+                                   aggregated_col2, 
+                                   on = groupbycol, 
+                                   suffixes = ('_col1', '_col2'))
+        aggregated_data.rename(columns={f'{col1}_col1': col1}, inplace=True)
+
+    else:
+        aggregated_data = pd.merge(aggregated_col1, 
+                                   aggregated_col2, 
+                                   on = groupbycol, 
+                                   suffixes=('_col1', '_col2'))
+        aggregated_data.rename(columns={f'{col1}_col1': col1, 
+                                        f'{col2}_col2': col2}, inplace=True)
+
+    if debug:   
+        print("Aggregated Data:")
+        print(aggregated_data.head())
+
+    return aggregated_data[[col1, col2]]
+
+
+def filter_data2(data : pd.DataFrame, 
                 section : int = 1, 
                 groupbycol : list = ['LAP_BEACON', 'LAP_NO'], 
                 aggbycol : list = ['Time_on_lap', 'SPEED'],
@@ -83,30 +226,47 @@ def filter_data(data : pd.DataFrame,
     return aggregated_data[aggbycol]
 
 
-def plot_group_of_points(aggregated_data, kmeans, section):
+def plot_group_of_points(aggregated_data, kmeans, section, col1, col2):
     """
     This function plots all datapoints from the oryginal data, along with all
     markers of the cluster centers
     """
 
-    # Prepare list of points, which mark centers of cluster
     centers = kmeans.cluster_centers_
-    center_times = centers[:, 0]
-    center_speeds = centers[:, 1]
+    center_col1 = centers[:, 0]
+    center_col2 = centers[:, 1]
 
     y_kmeans = aggregated_data['Cluster']
 
     # Prepare the plot
     plt.figure(figsize=(10, 7))
-    plt.title(f'K-Means Clustering: Time_on_lap vs. SPEED - section {section}')
-    plt.xlabel('Time on Lap')
-    plt.ylabel('Speed')
+    plt.title(f'K-Means Clustering: {col1} vs. {col2} - section {section}')
+    plt.xlabel(col1)
+    plt.ylabel(col2)
 
-    # Put points on the plot
-    plt.scatter(aggregated_data['Time_on_lap'], 
-                aggregated_data['SPEED'], c=y_kmeans, s=50, cmap='viridis')
-    plt.scatter(center_times, center_speeds, c='red',
-                s=200, alpha=0.75, marker='X')
+    # Plot points with colors corresponding to their cluster
+    scatter = plt.scatter(aggregated_data[col1], aggregated_data[col2], 
+                          c=y_kmeans, s=50, cmap='viridis')
+
+    # Plot cluster centers
+    plt.scatter(center_col1, center_col2, c='red', s=200, alpha=0.75, 
+                marker='X', label='Cluster Centers')
+
+    # Create a legend for the clusters
+    unique_clusters = np.unique(y_kmeans)
+    handles = [plt.Line2D([0], [0], marker='o', color='w', 
+                          label=f'Cluster {cluster}', 
+                          markerfacecolor=scatter.cmap(scatter.norm(cluster)), 
+                          markersize=10) 
+               for cluster in unique_clusters]
+
+    # Add cluster centers to the legend
+    handles.append(plt.Line2D([0], [0], marker='X', color='w', 
+                              label='Cluster Centers', 
+                              markerfacecolor='red', markersize=10))
+
+    plt.legend(handles=handles)
+    
     plt.show()
 
 
@@ -116,7 +276,9 @@ def plot_points_from_new_data_with_all_points(new_x_points,
                                               size_new_point,
                                               aggregated_data,
                                               kmeans,
-                                              section):
+                                              section,
+                                              col1,
+                                              col2):
     """
     By design, this function does mostly the same as the `plot_group_of_points`;
     The only difference, it that it allows to put another set of point, on top
@@ -126,13 +288,15 @@ def plot_points_from_new_data_with_all_points(new_x_points,
     """
 
     plt.ion()
-    plot_group_of_points(aggregated_data, kmeans, section)
-    plt.scatter(new_x_points, new_y_poinst, c=color_new_point, s=size_new_point)
+    plot_group_of_points(aggregated_data, kmeans, section, col1, col2)
+    plt.scatter(new_x_points, new_y_poinst, c=color_new_point, s=size_new_point,
+                marker="+")
     plt.ioff()
     plt.show()
 
 
-def write_data_into_file(path_to_dir, file_name, aggregated_data, kmeans):
+def write_data_into_file(path_to_dir, file_name, 
+                         aggregated_data, kmeans, col1, col2):
     
     if isfile(path_to_dir):
         path_to_dir = dirname(path_to_dir)
@@ -140,9 +304,9 @@ def write_data_into_file(path_to_dir, file_name, aggregated_data, kmeans):
     if not file_name.endswith(".pickle"):
         file_name += ".pickle"
 
-    full_path = path_to_dir + sign + file_name
+    full_path = path_to_dir + "/" + file_name
     
-    pickle.dump((aggregated_data, kmeans), open(full_path, "wb"))
+    pickle.dump((aggregated_data, kmeans, col1, col2), open(full_path, "wb"))
 
     return full_path
 
@@ -167,21 +331,32 @@ if __name__ == "__main__":
                         'LAP_BEACON', 'LAP_NO', "Distance", "Distance_on_lap"]
     grbycol = ['LAP_BEACON', 'LAP_NO']
     aggbycol = ['Time_on_lap', 'SPEED']
+    section = 5
+    col1 = aggbycol[0]
+    col2 = aggbycol[1]
+
+    processing_option = {
+        'SPEED' : 'average',
+        'Time_on_lap' : 'last',
+        'Distance' : 'none',
+        'Distance_on_lap' : 'none',
+        'BRAKE' : 'none',
+        'STEERANGLE' : 'highiest',
+        'THROTTLE' : 'average'
+    }
+
+    col1_proc = processing_option[col1]
+    col2_proc = processing_option[col2]
 
     Tk().withdraw()
     csv_file_path = askopenfilename()  # Replace with your file path
     
     if csv_file_path == "": exit()
 
-    data = pd.read_csv(csv_file_path, usecols=selected_columns)
-    aggregated_data, kmeans = train_algorithm(data, 5, grbycol, aggbycol)
-    plot_group_of_points(aggregated_data, kmeans, 5)
-    
-    # Example, on how to use this function
-    # plot_points_from_new_data_with_all_points(30,
-    #                                           150,
-    #                                           'orange',
-    #                                           100,
-    #                                           aggregated_data,
-    #                                           kmeans,
-    #                                           5)
+    data = pd.read_csv(csv_file_path, usecols = selected_columns)
+    aggregated_data, kmeans = train_algorithm(data, section, grbycol, 
+                                              col1, col2,
+                                              col1_process = col1_proc, 
+                                              col2_process = col2_proc, 
+                                              debug=True)
+    plot_group_of_points(aggregated_data, kmeans, section, col1, col2)

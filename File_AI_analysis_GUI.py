@@ -126,13 +126,16 @@ def __generate_new_ai_graphs():
                             f"created this error - {e}")
         return
     
+    col1 = 'Distance_on_lap'
+    col2 = 'BRAKE'
     
     for section in range(1, no_of_sec + 1):
         aggregated_data, kmeans = train_algorithm(df, section)
         write_data_into_file(fol_for_data,
                              f"ai_data_{section}.pickle",
                              aggregated_data,
-                             kmeans)
+                             kmeans,
+                             col1, col2)
 
     messagebox.showinfo("Processing status", "All section have beeen processed")
 
@@ -216,7 +219,6 @@ def __show_one_specific_graph_with_points():
                                               agg_data,
                                               kmeans,
                                               selected_section)
-
 
 
 ########################   GUI SETUP AND ARRANGEMENT   ########################
