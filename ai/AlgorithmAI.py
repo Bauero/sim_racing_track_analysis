@@ -300,6 +300,7 @@ def plot_points_from_new_data_with_all_points(new_x_points,
 
     # Prepare the plot
     plt.figure(figsize=(10, 7))
+    plt.grid(True)
     plt.title(f'K-Means Clustering: {col1} vs. {col2} - section {section}')
     plt.xlabel(col1)
     plt.ylabel(col2)
