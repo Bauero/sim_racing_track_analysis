@@ -205,11 +205,11 @@ def filter_data(data : pd.DataFrame,
     return aggregated_data[[col1, col2]]
 
 
-def filter_data2(data : pd.DataFrame, 
-                section : int = 1, 
-                groupbycol : list = ['LAP_BEACON', 'LAP_NO'], 
-                aggbycol : list = ['Time_on_lap', 'SPEED'],
-                debug : bool = False):
+def filter_data_oryginal(data : pd.DataFrame, 
+                         section : int = 1, 
+                         groupbycol : list = ['LAP_BEACON', 'LAP_NO'], 
+                         aggbycol : list = ['Time_on_lap', 'SPEED'],
+                         debug : bool = False):
     
     # Restructure data, by filtering and grouping according to input params
     filtered_data = data[data['Section'] == section]
@@ -227,14 +227,11 @@ def filter_data2(data : pd.DataFrame,
 
 
 def plot_group_of_points(aggregated_data, kmeans, section, col1, col2):
-    """
-    This function plots all datapoints from the oryginal data, along with all
-    markers of the cluster centers
-    """
-
+    # Prepare list of points, which mark centers of cluster
     centers = kmeans.cluster_centers_
     center_col1 = centers[:, 0]
     center_col2 = centers[:, 1]
+    cluster_colors = ['blue', 'green', 'orange', 'purple']
 
     y_kmeans = aggregated_data['Cluster']
 
@@ -244,21 +241,28 @@ def plot_group_of_points(aggregated_data, kmeans, section, col1, col2):
     plt.xlabel(col1)
     plt.ylabel(col2)
 
-    # Plot points with colors corresponding to their cluster
-    scatter = plt.scatter(aggregated_data[col1], aggregated_data[col2], 
-                          c=y_kmeans, s=50, cmap='viridis')
+    # If custom colors are not provided, use a default colormap
+    if cluster_colors is None:
+        cmap = plt.get_cmap('viridis')
+        cluster_colors = [cmap(i) for i in np.linspace(0, 1, 
+                                                       len(np.unique(y_kmeans)))]
+
+    # Plot points with specified colors for each cluster
+    unique_clusters = np.unique(y_kmeans)
+    for cluster, color in zip(unique_clusters, cluster_colors):
+        subset = aggregated_data[aggregated_data['Cluster'] == cluster]
+        plt.scatter(subset[col1], subset[col2], color=color, s=50, 
+                    label=f'Cluster {cluster}')
 
     # Plot cluster centers
     plt.scatter(center_col1, center_col2, c='red', s=200, alpha=0.75, 
                 marker='X', label='Cluster Centers')
 
-    # Create a legend for the clusters
-    unique_clusters = np.unique(y_kmeans)
+    # Create custom legend handles
     handles = [plt.Line2D([0], [0], marker='o', color='w', 
                           label=f'Cluster {cluster}', 
-                          markerfacecolor=scatter.cmap(scatter.norm(cluster)), 
-                          markersize=10) 
-               for cluster in unique_clusters]
+                          markerfacecolor=color, markersize=10) 
+               for cluster, color in zip(unique_clusters, cluster_colors)]
 
     # Add cluster centers to the legend
     handles.append(plt.Line2D([0], [0], marker='X', color='w', 
@@ -271,7 +275,7 @@ def plot_group_of_points(aggregated_data, kmeans, section, col1, col2):
 
 
 def plot_points_from_new_data_with_all_points(new_x_points,
-                                              new_y_poinst,
+                                              new_y_points,
                                               color_new_point,
                                               size_new_point,
                                               aggregated_data,
@@ -283,15 +287,55 @@ def plot_points_from_new_data_with_all_points(new_x_points,
     By design, this function does mostly the same as the `plot_group_of_points`;
     The only difference, it that it allows to put another set of point, on top
     of the points from aggregated data, for example, to allow to display points
-    from the last performace of the player, on to po of the point from statictic
-    preformace in history
+    from the last performance of the player, on top of the points from statistic
+    performance in history
     """
 
-    plt.ion()
-    plot_group_of_points(aggregated_data, kmeans, section, col1, col2)
-    plt.scatter(new_x_points, new_y_poinst, c=color_new_point, s=size_new_point,
-                marker="+")
-    plt.ioff()
+    centers = kmeans.cluster_centers_
+    center_col1 = centers[:, 0]
+    center_col2 = centers[:, 1]
+    cluster_colors = ['blue', 'green', 'orange', 'purple']
+
+    y_kmeans = aggregated_data['Cluster']
+
+    # Prepare the plot
+    plt.figure(figsize=(10, 7))
+    plt.title(f'K-Means Clustering: {col1} vs. {col2} - section {section}')
+    plt.xlabel(col1)
+    plt.ylabel(col2)
+
+    # Plot points with specified colors for each cluster
+    unique_clusters = np.unique(y_kmeans)
+    for cluster, color in zip(unique_clusters, cluster_colors):
+        subset = aggregated_data[aggregated_data['Cluster'] == cluster]
+        plt.scatter(subset[col1], subset[col2], color=color, s=50, 
+                    label=f'Cluster {cluster}')
+
+    # Plot cluster centers
+    plt.scatter(center_col1, center_col2, c='red', s=200, alpha=0.75, 
+                marker='X', label='Cluster Centers')
+
+    # Create custom legend handles
+    handles = [plt.Line2D([0], [0], marker='o', color='w', 
+                          label=f'Cluster {cluster}', 
+                          markerfacecolor=color, markersize=10) 
+               for cluster, color in zip(unique_clusters, cluster_colors)]
+
+    # Add cluster centers to the legend
+    handles.append(plt.Line2D([0], [0], marker='X', color='w', 
+                              label='Cluster Centers', 
+                              markerfacecolor='red', markersize=10))
+
+    # Plot new user data points
+    plt.scatter(new_x_points, new_y_points, c=color_new_point, 
+                s=size_new_point, marker='+')
+
+    # Append the new legend entry
+    handles.append(plt.Line2D([0], [0], marker='+', color='w', label='User data', 
+                              markeredgecolor = color_new_point, markersize=10))
+    
+    # Update the legend with the new handles
+    plt.legend(handles=handles)
     plt.show()
 
 

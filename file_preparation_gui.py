@@ -168,7 +168,6 @@ def __show_one_specific_graph_with_points():
     while selected_columns == []:
         Tk().withdraw()
         ans = __name_from_user(allowed_columns)
-        print('Ans =', ans)
         if ans.strip() == "":
             selected_columns = default_columns
         else:
