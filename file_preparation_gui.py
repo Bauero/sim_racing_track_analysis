@@ -43,6 +43,7 @@ def show_loading_window():
 def clean_file():
     root.update()
     x = filedialog.askopenfilename()
+    if not x: return
     loading_window = show_loading_window()
     root.update()
     race_info, file_object = prepare_data(x, verbose=True)
@@ -54,6 +55,7 @@ def clean_file():
 def analyze_file():
     root.update()
     x = filedialog.askopenfilename()
+    if not x: return
     loading_window = show_loading_window()
     root.update()
     log_date, log_time, sth, st2 = x.split("/")[-1].split("_")
