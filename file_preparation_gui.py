@@ -46,7 +46,7 @@ def clean_file():
     if not x: return
     loading_window = show_loading_window()
     root.update()
-    race_info, file_object = prepare_data(x, verbose=True)
+    race_info, file_object = prepare_data(x)
     save_directory = os.path.dirname(x)
     save_data_csv(file_object, race_info, save_directory)
     loading_window.destroy()
@@ -60,16 +60,17 @@ def analyze_file():
     root.update()
     log_date, log_time, sth, st2 = x.split("/")[-1].split("_")
     save_directory = os.path.dirname(x)
+
     data_analysis(x, save_directory, log_date, log_time)
     loading_window.destroy()
     std_file = list(filter(lambda x: x.endswith("_std_each_section.csv"), 
-                           os.listdir("./files")))[0]
+                           os.listdir(save_directory)))[0]
     messagebox.showinfo("File analysis completed",
                         "File has been analyzed. Evaluations are stored in " +
                         "the same folder as the selected file - now the " +
                         "program will display a heatmap of Standard " +
                         "Deviation of time for each section")
-    draw_heatmap_for_file(f"files/{std_file}")
+    draw_heatmap_for_file(f"{save_directory}/{std_file}")
     print("File has been processed!")
 
 def __get_number_from_user():
