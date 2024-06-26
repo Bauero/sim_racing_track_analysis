@@ -97,10 +97,14 @@ def __return_colors_for_seciton(file : str,
 #############################  PUBLIC FUNCTIONS   #############################
 
 
-def draw_heatmap_for_file(file):
+def draw_heatmap_for_file(file, main = False):
 
-    catalunya_cleaned = pd.read_csv(str(pathlib.Path().resolve()) + 
-                                    "/graphical_visualization/Catalunya_cleaned.csv")
+    if not main:
+        catalunya_cleaned = pd.read_csv(str(pathlib.Path().resolve()) + 
+                        "/graphical_visualization/Catalunya_cleaned.csv")
+    else:
+        catalunya_cleaned = pd.read_csv(str(pathlib.Path().resolve()) + 
+                            "/Catalunya_cleaned.csv")
 
     # Extract the coordinates and sections
     x_coords = catalunya_cleaned['Starting_x']
@@ -166,3 +170,20 @@ def draw_heatmap_for_file(file):
     plt.xlim(x_min - x_buffer, x_max + x_buffer)
     plt.ylim(y_min - y_buffer, y_max + y_buffer)
     plt.show()
+
+
+if __name__ == "__main__":
+
+    import tkinter as TK
+    from tkinter.filedialog import askopenfilename
+
+    TK.Tk().withdraw()
+    # Load the data from the CSV file
+    csv_file_path = askopenfilename(
+            title="Select location of std file",
+            filetypes=[("CSV files", "*.csv")]
+        )
+    TK.Tk().destroy()
+
+    if csv_file_path.endswith("_std_each_section.csv"):
+        draw_heatmap_for_file(csv_file_path, main = True)
