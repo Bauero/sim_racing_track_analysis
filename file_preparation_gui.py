@@ -6,9 +6,8 @@ from additional.constants import sign, sections
 from preparation.data_preparation import prepare_data, save_data_csv
 from statystical_analysis.data_analysis import data_analysis
 from graphical_visualization.heatmap_cleaned import draw_heatmap_for_file
-from ai.AlgorithmAI import train_algorithm, write_data_into_file, filter_data, \
-                           read_data_from_file, plot_group_of_points, \
-                           plot_points_from_new_data_with_all_points
+from ai.AlgorithmAI import train_algorithm, filter_data, \
+                            plot_points_from_new_data_with_all_points
 
 root = Tk()
 root.geometry("1280x720")

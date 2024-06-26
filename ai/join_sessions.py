@@ -27,6 +27,24 @@ def proper_file(root, file) -> bool:
     return file.endswith("_cleaned_data.csv") and \
             (root.split("/")[-3] == "Cleaned data")
 
+def proper_file_simplified(root, file) -> bool:
+    """
+    This funciton is used for filtering files. While contcatenating files, we
+    run `os.walk` command, which finds multiple files. This function defines
+    which files should classify as the one for concatenation
+
+    This fuction yields `True` only for files with names ending on 
+    `_cleaned_data.csv`
+
+    EX:
+    if (>>>) is the starting directory, then
+
+    - >>> /Cleaned data/ folder 2/ folder 3/ sth_cleaned_data.csv = True
+    - >>> /Cleaned data/ folder 2/ folder 3/ different_file.csv = False
+    """
+    
+    return file.endswith("_cleaned_data.csv")
+
 
 def concatenate_files(input_directory, 
                       function_to_filter_files,
