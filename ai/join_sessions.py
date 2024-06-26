@@ -108,7 +108,7 @@ if __name__ == "__main__":
         Tk().withdraw()
         savedir = askdirectory(
             initialdir = dir,
-            title="Select directory to look for files recursively")
+            title="Select directory to save concatenated file")
         Tk().destroy()
         if not savedir:
             print("No directory selected - write C + Enter to " +
