@@ -5,7 +5,6 @@ import os
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 from additional.additional_commands import *
-from additional.additional_commands import clean
 from statystical_analysis.data_analysis import data_analysis
 from additional.constants import sign
 
