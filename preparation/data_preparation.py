@@ -4,7 +4,6 @@ from Motec software. By default this file can be use as a standalone app, but
 it can be run by external program
 """
 
-
 import csv
 import json
 from preparation.constants import sections, sign
@@ -25,13 +24,12 @@ def __remove_unnecessary_rows(file_object, hard_coded : bool = True,
 
     Function contains two different solutions. By default (hard_coded == True)
     function would simply erase all 14 first rows (leaving first row as titles)
-    and then remove rows 2-4 which contains units and 2 empty rows. However any
-    changes to rows, as well as empty rows wouldn't be detected. 
+    and then remove rows 2 to 4 which contains units and 2 empty rows. However 
+    any changes to rows, as well as empty rows wouldn't be detected. 
     
     Therefore one can run this function with option 'hard_coded' set to False.
     Then function will automatically parse file to remove any empty rows and 
-    rows which are not column's title's row (the one, which in first column has 
-    'Time' value)
+    rows which in the first column don't have numeric value or 'Time' text
     """
 
     if not hard_coded:
@@ -138,7 +136,7 @@ def __even_out_comma_notation_str(file_object):
     file is bigger, because everything is treated as text
     """
 
-    # This is alternative solution to the nested in loop below
+    # This is alternative solution to the nested list in loop below
     # It is commented out because it explains better what is done
     # But is around ~30% slower
 
@@ -274,9 +272,8 @@ def __add_time_distance_on_lap(file_object,
 
 
 def __add_sections(file_object,
-                               lap_info,
-                               values_in_float,
-                               verbose):
+                   values_in_float,
+                   verbose):
     """
     This funcition is responible for adding section columns after 'LAP_BEACON'
     """
@@ -333,7 +330,7 @@ def __add_additional_columns(file_object,
     """
     This function fills out missing data. It should contain other functions
     which directly puts additioal columns, or modify exising ones (except 
-    removing them - this is done ealier)
+    removing them - this is done earlier)
     """
 
     # Adding missing lap numbers
@@ -352,7 +349,6 @@ def __add_additional_columns(file_object,
     # Adding column to indicate which section is driver in
 
     file_object = __add_sections(file_object,
-                                 lap_info,
                                  values_in_float,
                                  verbose)
 
@@ -371,7 +367,6 @@ def prepare_data(file_path, verbose : bool = False,
                  delim : str = ','):
     """
     This is general function which is responsible for data preparation
-
     This function returns race informaiton in form of a dictionary
     """
 
@@ -441,30 +436,37 @@ def prepare_data(file_path, verbose : bool = False,
 
 
 def return_formatted_date_and_time(race_data):
-    time, date = race_data["log_time"], race_data["log_date"]
+    """This function returns time and date like:
+    Time: 10-40-50
+    Date: 04-05-12
+    """
 
+    time, date = race_data["log_time"], race_data["log_date"]
     time = time.replace("/","-").replace("\\","-").replace(":","-")
     date = date.replace(".","-").replace("/","-")
 
     return time, date
 
 
-def prepare_data_combined(file_path, verbose : bool = False,
-                 convert_values_with_float_conversion : bool = False,
-                 hard_codec_row_removal : bool = True,
-                 column_remove_list : list = [],
-                 delim : str = ','):
+def __prepare_data_combined(file_path, verbose : bool = False,
+                            convert_values_with_float_conversion : bool = False,
+                            hard_codec_row_removal : bool = True,
+                            column_remove_list : list = [],
+                            delim : str = ','):
     """
     This funciton does the same things as prepare_data, however it does all
     operations in one loop, so it should run faster ...
     
-    except, that it doesn' - most likely due to checking all rows, every time. 
+    except, that it not - most likely due to checking all rows, every time. 
     Nevertheless, instead of 1.40s it averages around 2.15s which is a shame
     for me and the time spend on this. Hovever, I leave it here, as a form of
     tl;dr for ppl which prefer to see one funciton does all the work, instead of
     jumping between calls
 
     PS. funciton works, but I never use it as it's slower
+
+    It was done just as a test, but because it works I will leave it in the code
+    in case there would be some usecase in the future
     """
 
     try:
@@ -589,7 +591,24 @@ def save_data_csv(file_object,
                   custom_cleaned_data_filename : str = "",
                   custom_data_summary_filename : str = ""):
     """
-    This function is responsible for storage of modified file into a new file
+    This function will save output of the data preparation (file_object and 
+    race_data) into separate files. 
+
+    :file_object: - cleaned laps form the user
+
+    :race_data: - information about performace, like lap markers, date, time etc.
+
+    :special_path: - directory where files will be saved
+
+    :save_to_excel_format: - this param does nothing - it is used to retain 
+    compatybility with soultion done in Pandas because in Pandas, change to
+    Excel format (from 0.0 to "0,0") is done while saving
+
+    :custom_cleaned_data_filename: - optional custom name which user can pass
+    to override default naming convention 'date_time_cleaned_data.csv'
+
+    :custom_data_summary_filename: - optional custom name which user can pass
+    to override default naming convention 'date_time_race_data.csv'
     """
     if not (custom_cleaned_data_filename or custom_data_summary_filename):
         log_date, log_time = return_formatted_date_and_time(race_data)

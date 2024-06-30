@@ -4,10 +4,18 @@ race data from csv file from MoTeC. Those funciton are stored in separate file
 as they are use by data preparation files both using standard solution, and
 pandas library
 """
-from additional.additional_commands import c_blue, c_green, c_pink, c_cyan
+from preparation.additional_commands import c_blue, c_green, c_pink, c_cyan
 
 
 def display_laps_summary(laps_start_end, color : bool = False):
+    """
+    This function is used to display data about laps start and end in 
+    user-friendly way (with optional coloring)
+
+    Example
+    -------
+    Lap 3 : 0381.123 - 0492.398   =   111.275
+    """
 
     ts = ""
 
@@ -24,10 +32,10 @@ def display_laps_summary(laps_start_end, color : bool = False):
             ts += c_blue(f'Lap {(i + 1)}')        + ' : ' +\
                   c_green(f'{start:08.3f}')       + ' - ' + \
                   c_cyan(f'{end:08.3f}')          + '   =   ' +\
-                  c_green(f'{(end - start):.3f}') + '\n'
+                  c_green(f'{(end - start):8.3f}') + '\n'
         else:
             ts += f'Lap {(i + 1)} : {start:08.3f} - {end:08.3f}   =   ' +\
-                  f'{(end - start):.3f}s\n'
+                  f'{(end - start):8.3f}s\n'
             
     return ts
 

@@ -148,7 +148,6 @@ def __show_one_specific_graph_with_points():
     csv_file_path = filedialog.askopenfilename()  # Replace with your file path
     if csv_file_path == "": exit()
     
-    dir = os.curdir + sign + "graphs_for_section"
     selected_section = None
     default_columns = ["Time_on_lap", "SPEED"]
     selected_columns = []

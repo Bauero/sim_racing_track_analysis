@@ -4,7 +4,7 @@ all the same things as '`data_preparation.py`'. However, everything is done
 using pandas
 
 WHY? - (tldr: alternative solution for practice)
-pandas, as more advanded library, provides many tools and simple syntax. 
+Pandas, as more advanded library, provides many tools and simple syntax. 
 So, to learn new library, I've redo my solution using it. Therefore, there's no
 other 'hidden' benefit to using this file that 'data_preparation.py' in file
 preparation - moreover, from my experience, it seems that my custom solution 
@@ -147,8 +147,12 @@ def prepare_data(file_path, verbose : bool = False,
                  delim : str = ','):
     """
     This is general function which is responsible for data preparation
-
     This function returns race informaiton in form of df
+
+    Parameters like `convert_values_with_float_conversion` and 
+    `hard_codec_row_removal` doesn't change the behaviour of the progrm. They 
+    are here, to remain compatibility between custom preparation and Pandas
+    implementaion
     """
 
     try:
@@ -175,8 +179,12 @@ def prepare_data(file_path, verbose : bool = False,
 
 
 def return_formatted_date_and_time(race_data):
-    time, date = race_data["log_time"], race_data["log_date"]
+    """This function returns time and date like:
+    Time: 10-40-50
+    Date: 04-05-12
+    """
 
+    time, date = race_data["log_time"], race_data["log_date"]
     time = time.replace("/","-").replace("\\","-").replace(":","-")
     date = date.replace(".","-").replace("/","-")
 
@@ -184,6 +192,8 @@ def return_formatted_date_and_time(race_data):
 
 
 def remove_laps(df, laps : list):
+    """This function removes laps form the data on demand of the user"""
+
     laps = [str(l) for l in laps]
     rows_to_remove = df[df['LAP_BEACON'].isin(laps)].index
     df.drop(rows_to_remove, inplace=True)
@@ -196,6 +206,24 @@ def save_data_csv(file_object,
                   save_values_as_float : bool = True,
                   custom_cleaned_data_filename : str = "",
                   custom_data_summary_filename : str = ""):
+    """
+    This function will save output of the data preparation (file_object and 
+    race_data) into separate files. 
+
+    :file_object: - cleaned laps form the user
+
+    :race_data: - information about performace, like lap markers, date, time etc.
+
+    :special_path: - directory where files will be saved
+
+    :save_values_as_float: - how to save values | "0,0" (False) or 0.0 (True)
+
+    :custom_cleaned_data_filename: - optional custom name which user can pass
+    to override default naming convention 'date_time_cleaned_data.csv'
+
+    :custom_data_summary_filename: - optional custom name which user can pass
+    to override default naming convention 'date_time_race_data.csv'
+    """
     
     if not (custom_cleaned_data_filename or custom_data_summary_filename):
         log_date, log_time = return_formatted_date_and_time(race_data)

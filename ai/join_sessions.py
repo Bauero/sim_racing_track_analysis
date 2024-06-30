@@ -15,13 +15,14 @@ def proper_file(root, file) -> bool:
     `_cleaned_data.csv`, and those which are stored in such a file structure 
     where the 3 folder from the top is called 'Cleaned data'
 
-    EX:
+    Example
+    -------
     if (>>>) is the starting directory, then
 
-    - >>> /Cleaned data/ folder 2/ folder 3/ sth_cleaned_data.csv = True
-    - >>> /folder 1/ folder 2/ folder 3/ sth_cleaned_data.csv = False
-    - >>> /Cleaned data/ folder 2/ folder 3/ different_file.csv = False
-    - >>> / sth_cleaned_data.csv !!! Raises Error !!!
+    >>> /"Cleaned data"/"folder 2"/"folder 3"/"sth_cleaned_data.csv" = True
+    >>> /"folder 1"/"folder 2"/"folder 3"/"sth_cleaned_data.csv" = False
+    >>> /"Cleaned data"/"folder 2"/"folder 3"/"different_file.csv" = False
+    >>> /"sth_cleaned_data.csv"   <- \   !!! Raises Error !!!
     """
     
     return file.endswith("_cleaned_data.csv") and \
@@ -36,11 +37,12 @@ def proper_file_simplified(root, file) -> bool:
     This fuction yields `True` only for files with names ending on 
     `_cleaned_data.csv`
 
-    EX:
+    Example
+    -------
     if (>>>) is the starting directory, then
 
-    - >>> /Cleaned data/ folder 2/ folder 3/ sth_cleaned_data.csv = True
-    - >>> /Cleaned data/ folder 2/ folder 3/ different_file.csv = False
+    >>> /"Cleaned data"/"folder 2"/"folder 3"/"sth_cleaned_data.csv" = True
+    >>> /"Cleaned data"/"folder 2"/"folder 3"/"different_file.csv" = False
     """
     
     return file.endswith("_cleaned_data.csv")

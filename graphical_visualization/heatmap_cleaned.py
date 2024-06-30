@@ -43,7 +43,21 @@ good_color = [0,255,0]
 #########################  FUNCITONS USED IN PROGRAM   #########################
 
 
-def __return_color(section, value, std_table):
+def __return_color(section, value, std_table) -> str:
+    """
+    This function will return a string in form of `#120A11`. Function checkes
+    what value is the `average` for a speciphic `section` based on the section 
+    and `std_table` provided. Then, function calculates the color. Color would 
+    be pure `good_color` if the value is <= 50% of value, and pure `bad_color` 
+    if value is >= 200% of the expected value. (Expected, average value is the
+    value in the table for a speciphic seciton)
+
+    :section: - section in the table for which we do calculation
+    
+    :value: - value which we want to compare against
+
+    :std_table: - table with values which are considered to be average
+    """
     
     global bad_color
     global avg_color
@@ -73,13 +87,16 @@ def __return_color(section, value, std_table):
 
 
 def __return_colors_for_seciton(file : str, 
-                              value_to_compare : str, 
-                              std_table : dict):
+                                value_to_compare : str, 
+                                std_table : dict):
     """This funciton allows to genrate colors to all secitons
     
     - `file` - path to file which should contain column specifiend in 
     `value_to_compare` param
-    - `value_to_compare` - 
+    - `value_to_compare` - name of the colum with value which we are using for
+    comparison - propably 'Std Time'
+    - `std_table` - table with values which are used as expected for seciphic
+    sections
     """
 
     global acceptable_time_std

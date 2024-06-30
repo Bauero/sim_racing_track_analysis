@@ -17,7 +17,18 @@ from additional.race_data_extraction_display import display_track_summary, \
 
 def __display_path(new_file, title):
     """
-    This function allows to show title in fancy way, with custom title
+    This function allow to show path to file in fancy, colored way, displaying
+    custom title above
+
+    :new_file: - path to file
+
+    :title: - title to be desplayed above path
+
+    Example
+    -------
+    folder1
+     └> folder2
+        └> file
     """
     
     print(c_green(f"{title}") + ":\n", end = "")
@@ -65,6 +76,12 @@ def __ask_menu(func, value):
 
 
 def __ask_for_new_place_to_save(dir_path):
+    """
+    Function to display info message asking user if he want to select custom
+    place to save file. If so, the program displays 'select directory' window
+    with devault location which could be passed as `dir_path` param by user
+    """
+
     print(c_green("Configutraiton saved !\n"))
     ans = input(
         c_yellow("Where do you want to save output files?") +
@@ -80,6 +97,16 @@ def __ask_for_new_place_to_save(dir_path):
 
 
 def __ask_remove_bad_laps(processed_file, race_data):
+    """
+    This is function which is responisible for data cleaning. It ask user if 
+    there are any laps which should be removed from the data, if so, removes those
+    laps, and returns remaining `processed_file`
+
+    :processed_file: - variable holding the processed file
+
+    :race_data: - varialbe with informaiton about data - it is used to display
+    times of laps
+    """
 
     print("Those are laps in our data")
     print(display_laps_summary(race_data["laps_start_end"], color = True))

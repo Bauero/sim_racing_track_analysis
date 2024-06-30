@@ -7,7 +7,25 @@ from sklearn.preprocessing import StandardScaler
 from os.path import isfile, dirname
 
 
-def process_grouped_data(grouped_data, col, process_type):
+def __process_grouped_data(grouped_data, col, process_type):
+    """
+    This function allows to change way of grouping datapoints. Usually we want
+    to represent one set of performance as one datapoint - thereofre we need to 
+    convert datapoints to one value - here are a few ways we can do this.
+
+    :grouped_data: - data which we want to convert to one point
+    
+    :col: - column which we want to transform
+    
+    :process_type: - method for conversion
+
+    There are multiple method for conversion:
+
+    - `highest` - pick highiest value from data
+    - `last` - pick last value from data
+    - `average` - calculate average of data
+    - `none` - will return whole column of data
+    """
     match process_type:
         case 'highest':
             return grouped_data[col].apply(lambda x: x.loc[x.abs().idxmax()])
@@ -40,8 +58,14 @@ def train_algorithm(data : pd.DataFrame,
     - `groupbycol` - here, you pass list of columns which will be used to split
     data into separate sets - by desigh it should be `LAP_BEACON`, `LAP_NO`
 
-    - `aggbycol` - here you can decide what would be the axis of the graph which
-    will be the end result of algorithm
+    - `col1` - column on X axis. Options: 'average', 'last', 'highest', 'none'
+
+    - `col2` - column on Y axis. Options: 'average', 'last', 'highest', 'none'
+
+    - col1/col2_process - method of converting points on this axis
+
+    - `debug` - if this is True, additional informaiton will be printed in 
+    console
     """
     
     # Restructure data, by filtering and grouping according to input params
@@ -53,7 +77,7 @@ def train_algorithm(data : pd.DataFrame,
         print(filtered_data.head())
 
     if col1_process != 'none':
-        aggregated_col1 = process_grouped_data(grouped_data, 
+        aggregated_col1 = __process_grouped_data(grouped_data, 
                                                col1, 
                                                col1_process).reset_index()
     else:
@@ -62,7 +86,7 @@ def train_algorithm(data : pd.DataFrame,
                                          col1]].copy()
         
     if col2_process != 'none':
-        aggregated_col2 = process_grouped_data(grouped_data, 
+        aggregated_col2 = __process_grouped_data(grouped_data, 
                                                col2, 
                                                col2_process).reset_index()
     else:
@@ -142,8 +166,27 @@ def filter_data(data : pd.DataFrame,
                 debug : bool = False):
     
     """
-    
-    - col1 / col2 _process - options: 'average', 'last', 'highest', 'none'
+    This function is intended to work similarly as `train_algorithm` - it doesn't
+    train cluseters, but it transforms data form the dataset provided by user
+    so it can be properly displayed on the graph.
+
+    - `data` - data table which will be used for clustering and fruther data 
+    processing
+
+    - `section` - clustering is always done for one specific section - here you
+    pass number with section for which clustering will be done - by default = 1
+
+    - `groupbycol` - here, you pass list of columns which will be used to split
+    data into separate sets - by desigh it should be `LAP_BEACON`, `LAP_NO`
+
+    - `col1` - column on X axis. Options: 'average', 'last', 'highest', 'none'
+
+    - `col2` - column on Y axis. Options: 'average', 'last', 'highest', 'none'
+
+    - col1/col2_process - method of converting points on this axis
+
+    - `debug` - if this is True, additional informaiton will be printed in 
+    console
     """
 
     # Restructure data, by filtering and grouping according to input params
@@ -155,7 +198,7 @@ def filter_data(data : pd.DataFrame,
         print(filtered_data.head())
 
     if col1_process != 'none':
-        aggregated_col1 = process_grouped_data(grouped_data, 
+        aggregated_col1 = __process_grouped_data(grouped_data, 
                                                col1, 
                                                col1_process).reset_index()
     else:
@@ -163,7 +206,7 @@ def filter_data(data : pd.DataFrame,
         aggregated_col1 = filtered_data[tmp].copy()
         
     if col2_process != 'none':
-        aggregated_col2 = process_grouped_data(grouped_data, 
+        aggregated_col2 = __process_grouped_data(grouped_data, 
                                                col2, 
                                                col2_process).reset_index()
     else:
@@ -342,6 +385,21 @@ def plot_points_from_new_data_with_all_points(new_x_points,
 
 def write_data_into_file(path_to_dir, file_name, 
                          aggregated_data, kmeans, col1, col2):
+    """
+    This function allows to write data representing plot into pickle file.
+
+    :path_to_dir: - path to folder where we want to save our file
+    
+    :file_name: - name of the file to save
+
+    :aggregated_data: - aggregated data for the points
+
+    :kmeans: - kmeans values
+    
+    :col1: - name of the first column in the data (X axis)
+
+    :col2: - name of the second column in the data (Y axis)
+    """
     
     if isfile(path_to_dir):
         path_to_dir = dirname(path_to_dir)
@@ -350,16 +408,20 @@ def write_data_into_file(path_to_dir, file_name,
         file_name += ".pickle"
 
     full_path = path_to_dir + "/" + file_name
-    
     pickle.dump((aggregated_data, kmeans, col1, col2), open(full_path, "wb"))
 
     return full_path
 
 
 def read_data_from_file(path_to_file):
+    """
+    This function is used to read data from pickle file. This funciton would 
+    allow to read data from file which store informaiton about graph. Output
+    of the funciton is unpacked stream of data (user must know what was the
+    structure of data which is being unpacked)
+    """
 
     if not isfile:  return None
-    
     if not path_to_file.endswith(".pickle"):    return None
 
     return pickle.load(open(path_to_file, "rb"))
