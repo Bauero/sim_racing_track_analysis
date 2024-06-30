@@ -6,8 +6,6 @@ expected to have names in form of '`data_time_cleaned_data.csv`'
 """
 
 import csv
-from constants import sections, inf, sign
-from tkinter.filedialog import askdirectory
 
 
 #############################  INTERNAL FUNCITONS  #############################
@@ -270,6 +268,8 @@ if __name__ == "__main__":
 
     from tkinter import Tk
     from os import listdir
+    from tkinter.filedialog import askdirectory
+    from constants import sections, inf, sign
 
     Tk().withdraw()
     path = askdirectory()
