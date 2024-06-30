@@ -6,7 +6,7 @@ expected to have names in form of '`data_time_cleaned_data.csv`'
 """
 
 import pandas as pd
-from statystical_analysis.constants import sign
+from constants import sign
 from tkinter.filedialog import askdirectory
 
 
@@ -124,9 +124,13 @@ def data_analysis(path_to_file, directory, date, time):
 
 
 if __name__ == "__main__":
+
+    from tkinter import Tk
+    from os import listdir
+
+    Tk().withdraw()
     path = askdirectory()
-    import os
-    file_list = list(os.listdir(path))
+    file_list = list(listdir(path))
 
     def cor_clean_data_file(file): return file.endswith("_cleaned_data.csv")
     files_csv_data = sorted(list(filter(cor_clean_data_file, file_list)))
